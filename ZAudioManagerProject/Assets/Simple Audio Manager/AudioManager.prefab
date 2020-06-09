@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &37883247796551398
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 37883247796551399}
+  - component: {fileID: 37883247796551393}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &37883247796551399
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37883247796551398}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 9.76}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &37883247796551393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37883247796551398}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2e46f944112085418f4eed2d31226ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  soundPreviewer: {fileID: 37883247796551399}
+  mixers:
+  - {fileID: 4269136618375640683, guid: 2ade64f11e2bff74983202a572852401, type: 2}
+  - {fileID: -1502956681947554398, guid: 2ade64f11e2bff74983202a572852401, type: 2}
+  - {fileID: 3619139169110995136, guid: 2ade64f11e2bff74983202a572852401, type: 2}
+  - {fileID: 24300002, guid: 2ade64f11e2bff74983202a572852401, type: 2}
+  sounds:
+  - isPlaying: 0
+    soundName: Grind
+    clip: {fileID: 8300000, guid: b8fce6d3deacfd340a211efffc49b56c, type: 3}
+    mixer: {fileID: -1502956681947554398, guid: 2ade64f11e2bff74983202a572852401,
+      type: 2}
+    loop: 0
+    priority: 128
+    volume: 1
+    pitch: 1
+    spatialBlend: 0
+    soundPreviewer: {fileID: 37883247796551399}
+    settings:
+      minDistance: 3
+      maxDistance: 9
+  - isPlaying: 0
+    soundName: 
+    clip: {fileID: 0}
+    mixer: {fileID: 4269136618375640683, guid: 2ade64f11e2bff74983202a572852401, type: 2}
+    loop: 0
+    priority: 128
+    volume: 1
+    pitch: 1
+    spatialBlend: 0
+    soundPreviewer: {fileID: 37883247796551399}
+    settings:
+      minDistance: 4
+      maxDistance: 8
+  chosenMixers: 0100000000000000
+  soundOpen: 0101
+  soundTesting: 0000
+  paused: 0000
