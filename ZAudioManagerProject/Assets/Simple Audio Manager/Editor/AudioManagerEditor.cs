@@ -48,8 +48,6 @@ public class AudioManagerEditor : Editor
 		moveButtonStyle = new GUIStyle(GUI.skin.button);
 		moveButtonStyle.normal.textColor = new Color(.5f, .5f, 1);
 
-		base.OnInspectorGUI();
-
 
 		using (new EditorGUILayout.VerticalScope("HelpBox"))
 		{
