@@ -15,15 +15,14 @@ public class AudioManagerEditor : Editor
 	List<SerializedProperty> soundPreviewers = new List<SerializedProperty>();
 	List<AudioSource> previewers = new List<AudioSource>();
 
+	bool initialized;
+
 	void OnEnable()
 	{
 
 		manager = (AudioManager)target;
-
-
-
 		manager.transform.hideFlags = HideFlags.HideInInspector;
-		previewers.Clear();
+		// previewers.Clear();
 
 		foreach (AudioManager.Sound s in manager.sounds)
 		{
@@ -37,14 +36,7 @@ public class AudioManagerEditor : Editor
 			SerializedProperty p = serializedObject.FindProperty("sounds").GetArrayElementAtIndex(i).FindPropertyRelative("soundPreviewer");
 
 			soundPreviewers.Add(p);
-
-			// soundPreviewers.Add(serializedObject.FindProperty("sounds[0].soundPreviewer"));
-
-			// Debug.LogWarning(soundPreviewers[i] + "s " + manager.sounds[i].soundPreviewer);
 		}
-
-
-
 	}
 	public override void OnInspectorGUI()
 	{
@@ -56,7 +48,7 @@ public class AudioManagerEditor : Editor
 		moveButtonStyle = new GUIStyle(GUI.skin.button);
 		moveButtonStyle.normal.textColor = new Color(.5f, .5f, 1);
 
-		// base.OnInspectorGUI();
+		base.OnInspectorGUI();
 
 
 		using (new EditorGUILayout.VerticalScope("HelpBox"))
@@ -288,13 +280,13 @@ public class AudioManagerEditor : Editor
 						using (new EditorGUILayout.HorizontalScope())
 						{
 							GUILayout.Label("Minimum Distance", min);
-							manager.sounds[i].settings.minDistance = EditorGUILayout.Slider(manager.sounds[i].settings.minDistance, 0, 500);
+							manager.sounds[i].settings.minDistance = EditorGUILayout.Slider(manager.sounds[i].settings.minDistance, 0.01f, 500);
 						}
 						using (new EditorGUILayout.HorizontalScope())
 						{
 
 							GUILayout.Label("Maximum Distance", max);
-							manager.sounds[i].settings.maxDistance = EditorGUILayout.Slider(manager.sounds[i].settings.maxDistance, 0, 500);
+							manager.sounds[i].settings.maxDistance = EditorGUILayout.Slider(manager.sounds[i].settings.maxDistance, 0.01f, 500);
 						}
 
 						EditorGUILayout.PropertyField(soundPreviewers[i], true);
@@ -306,7 +298,9 @@ public class AudioManagerEditor : Editor
 			serializedObject.ApplyModifiedProperties();
 		}
 	}
-	void OnSceneGUI()
+
+	[DrawGizmo(GizmoType.InSelectionHierarchy | GizmoType.NotInSelectionHierarchy)]
+	void DrawSoundSpheres()
 	{
 		for (int i = 0; i < manager.sounds.Count; i++)
 		{
@@ -324,7 +318,11 @@ public class AudioManagerEditor : Editor
 
 				}
 		}
+	}
 
+	void OnSceneGUI()
+	{
+		DrawSoundSpheres();
 	}
 	private void AddSound()
 	{

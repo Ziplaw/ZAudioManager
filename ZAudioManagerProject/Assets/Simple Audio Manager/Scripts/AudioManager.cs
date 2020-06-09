@@ -62,6 +62,12 @@ public class AudioManager : MonoBehaviour
 		{
 			if (i.sounds[j].soundName == name)
 			{
+				if (found)
+				{
+					Debug.LogError("There is more than one sound named " + name);
+					return null;
+				}
+
 				index = j;
 				found = true;
 			}
@@ -70,6 +76,7 @@ public class AudioManager : MonoBehaviour
 		if (!found)
 		{
 			Debug.LogWarning(name + " doesn't exist!");
+			return null;
 		}
 
 
