@@ -16,10 +16,10 @@ public class AudioManager : MonoBehaviour
 	}
 	public List<AudioMixerGroup> mixers = new List<AudioMixerGroup>();
 	public List<Sound> sounds = new List<Sound>();
-	public List<int> chosenMixers = new List<int>();
-	public List<bool> soundOpen = new List<bool>();
-	public List<bool> soundTesting = new List<bool>();
-	public List<bool> paused = new List<bool>();
+	// public List<int> chosenMixers = new List<int>();
+	// public List<bool> soundOpen = new List<bool>();
+	// public List<bool> soundTesting = new List<bool>();
+	// public List<bool> paused = new List<bool>();
 	public static List<PlayingAudioSourceData> sources = new List<PlayingAudioSourceData>();
 	[System.Serializable]
 	public class PlayingAudioSourceData
@@ -47,7 +47,7 @@ public class AudioManager : MonoBehaviour
 		{
 			if (!sources[j].playingAudioSource.isPlaying && !sources[j].isPaused)
 			{
-				Destroy(sources[j].playingAudioSource);
+				Destroy(sources[j].playingAudioSource.gameObject);
 				sources.RemoveAt(j);
 			}
 		}
@@ -125,10 +125,12 @@ public class AudioManager : MonoBehaviour
 
 	}
 
-	public static void Play(string soundName, Vector3 position)
+	public static void Play(string soundName, Vector3 position, Transform parent)
 	{
 
 		AudioSource source = new GameObject(soundName).AddComponent<AudioSource>();
+		source.gameObject.hideFlags = HideFlags.HideAndDontSave;
+		source.transform.SetParent(parent);
 		sources.Add(new PlayingAudioSourceData(soundName, source, false));
 		source.transform.position = position;
 		Sound sound = FindSoundFromName(soundName);
@@ -140,7 +142,7 @@ public class AudioManager : MonoBehaviour
 		source.volume = sound.volume;
 		source.pitch = sound.pitch;
 		source.priority = sound.priority;
-		source.spatialBlend = 1;
+		source.spatialBlend = sound.spatialBlend ? 1 : 0;
 		source.minDistance = sound.settings.minDistance;
 		source.maxDistance = sound.settings.maxDistance;
 
@@ -162,6 +164,11 @@ public class AudioManager : MonoBehaviour
 	[System.Serializable]
 	public class Sound
 	{
+		public Color previewColor;
+		public int selectedMixer;
+		public bool soundVisibleInInspector;
+		public bool soundTesting;
+		public bool paused;
 		public bool isPlaying;
 		public string soundName;
 		public AudioClip clip;
@@ -170,7 +177,7 @@ public class AudioManager : MonoBehaviour
 		[Range(0, 256)] public int priority;
 		[Range(0, 1)] public float volume;
 		[Range(0, 3)] public float pitch;
-		[Range(0, 1)] public bool spatialBlend;
+		public bool spatialBlend;
 		public Transform soundPreviewer;
 
 		public DimensionalSoundSettings settings = new DimensionalSoundSettings();
@@ -179,6 +186,7 @@ public class AudioManager : MonoBehaviour
 		{
 			if (clip)
 				this.soundName = clip.name;
+			this.previewColor = new Color(.5f, 1, .5f);
 			this.clip = clip;
 			this.mixer = mixer;
 			this.loop = loop;
@@ -196,8 +204,8 @@ public class AudioManager : MonoBehaviour
 	[System.Serializable]
 	public struct DimensionalSoundSettings
 	{
-		public float minDistance;
-		public float maxDistance;
+		[Range(.001f, 500)] public float minDistance;
+		[Range(.001f, 500)] public float maxDistance;
 
 		public DimensionalSoundSettings(float minDistance = 1, float maxDistance = 500)
 		{
@@ -205,7 +213,4 @@ public class AudioManager : MonoBehaviour
 			this.maxDistance = maxDistance;
 		}
 	}
-
-
-
 }

@@ -8,6 +8,6 @@ public class SoundTest : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-		AudioManager.Play(soundName, transform.position);
+		AudioManager.Play(soundName, transform.position, transform);
 	}
 }
