@@ -356,7 +356,7 @@ public class AudioManagerEditor : Editor
 
 	private void AddMixer()
 	{
-		manager.mixers.Add(manager.mixers[0]);
+		manager.mixers.Add(manager.mixers.Count > 0 ? manager.mixers[0] : null);
 		serializedObject.ApplyModifiedProperties();
 	}
 
