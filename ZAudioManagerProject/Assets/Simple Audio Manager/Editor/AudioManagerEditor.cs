@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEngine.Audio;
 using System;
+using NUnit.Framework.Constraints;
 
 [ExecuteInEditMode]
 [CustomEditor(typeof(AudioManager)), CanEditMultipleObjects]
@@ -14,9 +15,14 @@ public class AudioManagerEditor : Editor
 	AudioManager manager;
 	List<AudioSource> previewers = new List<AudioSource>();
 	SerializedProperty propMixers;
-	SerializedProperty propSounds;
+	SerializedProperty propsounds;
+
+
+	private List<AudioManager.Sound> sounds => manager.sounds;
+
 	void OnEnable()
 	{
+		
 		manager = (AudioManager)target;
 		manager.transform.hideFlags = HideFlags.HideInInspector;
 
@@ -31,28 +37,18 @@ public class AudioManagerEditor : Editor
 
 	void UpdateSoundList()
 	{
-		propSounds = serializedObject.FindProperty("sounds");
-		foreach (var s in manager.sounds)
+		propsounds = serializedObject.FindProperty("sounds");
+		foreach (var s in sounds)
 		{
 			previewers.Add(null);
 		}
 	}
+	
 	void DrawSoundProperty(SerializedProperty p)
 	{
 		using (new EditorGUILayout.HorizontalScope())
 		{
 			EditorGUILayout.PropertyField(p, GUIContent.none);
-		}
-		serializedObject.ApplyModifiedProperties();
-	}
-	void DrawSoundPropertyAt(SerializedProperty pList, string propertyPath, string label, GUIStyle style, float maxWidth, int i)
-	{
-		SerializedProperty tempProp = pList.GetArrayElementAtIndex(i).FindPropertyRelative(propertyPath);
-
-		using (new EditorGUILayout.HorizontalScope())
-		{
-			GUILayout.Label(label, style, GUILayout.MaxWidth(maxWidth));
-			EditorGUILayout.PropertyField(tempProp, GUIContent.none);
 		}
 		serializedObject.ApplyModifiedProperties();
 	}
@@ -91,10 +87,12 @@ public class AudioManagerEditor : Editor
 
 	public override void OnInspectorGUI()
 	{
-
-		// Debug.Log(propMixers.Count);
+		// serializedObject.Update();
 		GUIStyle fieldColor = new GUIStyle(GUI.skin.label);
 		fieldColor.normal.textColor = new Color(1, .7f, 0);
+		
+		GUIStyle nullFieldColor = new GUIStyle(GUI.skin.label);
+		nullFieldColor.normal.textColor = Color.red;
 
 		GUIStyle min = new GUIStyle(GUI.skin.label);
 		GUIStyle max = new GUIStyle(GUI.skin.label);
@@ -107,11 +105,19 @@ public class AudioManagerEditor : Editor
 		moveButtonStyle = new GUIStyle(GUI.skin.button);
 		moveButtonStyle.normal.textColor = new Color(.5f, .5f, 1);
 
-		GUIStyle hoverableButton = EditorStyles.toolbarButton;
+		GUIStyle hoverableButton = new GUIStyle(EditorStyles.toolbarButton);
 		hoverableButton.normal.textColor = fieldColor.normal.textColor;
 		hoverableButton.hover.textColor = new Color(0, 1, .7f);
 		hoverableButton.focused.textColor = new Color(0, 1, .9f);
 		hoverableButton.active.textColor = new Color(0, 1, .9f);
+		
+		GUIStyle nullHoverableButton = new GUIStyle(EditorStyles.toolbarButton);
+		nullHoverableButton.normal.textColor = Color.red;
+		nullHoverableButton.hover.textColor = new Color(0, 1, .7f);
+		nullHoverableButton.focused.textColor = new Color(0, 1, .9f);
+		nullHoverableButton.active.textColor = new Color(0, 1, .9f);
+		
+		
 
 		// base.DrawDefaultInspector();
 
@@ -139,7 +145,6 @@ public class AudioManagerEditor : Editor
 			{
 				using (new EditorGUILayout.HorizontalScope("HelpBox"))
 				{
-					// manager.mixers[i] = (AudioMixerGroup)EditorGUILayout.ObjectField(manager.mixers[i], typeof(AudioMixerGroup), true);
 					SerializedProperty p = propMixers;
 
 					DrawSoundProperty(propMixers.GetArrayElementAtIndex(i));
@@ -169,18 +174,26 @@ public class AudioManagerEditor : Editor
 
 
 
-		for (int i = 0; i < propSounds.arraySize; i++)
+		for (int i = 0; i < propsounds.arraySize; i++)
 		{
 			using (new EditorGUILayout.VerticalScope("HelpBox"))
 			{
 				using (new EditorGUILayout.HorizontalScope("HelpBox"))
 				{
-					// DrawSoundPropertyAt(propSounds, "soundVisibleInInspector", manager.sounds[i].soundName, fieldColor, 20, i);
-					bool prevVisibilityState = manager.sounds[i].soundVisibleInInspector;
+					bool prevVisibilityState = sounds[i].soundVisibleInInspector;
 
-					manager.sounds[i].soundVisibleInInspector = GUILayout.Toggle(manager.sounds[i].soundVisibleInInspector, manager.sounds[i].soundName, hoverableButton);
+					if (!sounds[i].clip)
+						if (GUILayout.Button(
+							AssetDatabase.LoadAssetAtPath("Assets/Simple Audio Manager/Textures/warning icon.png",
+								typeof(Texture2D)) as Texture2D, GUILayout.MaxWidth(20), GUILayout.MaxHeight(20)))
+						{
+							AudioClip[] clips = Resources.FindObjectsOfTypeAll<AudioClip>();
+							sounds[i].clip = clips.Length > 0 ? clips[0] : null;
+						}
 
-					if (prevVisibilityState != manager.sounds[i].soundVisibleInInspector)
+					sounds[i].soundVisibleInInspector = GUILayout.Toggle(sounds[i].soundVisibleInInspector, sounds[i].soundName, hoverableButton);
+
+					if (prevVisibilityState != sounds[i].soundVisibleInInspector)
 					{
 						EditorUtility.SetDirty(target);
 					}
@@ -191,7 +204,7 @@ public class AudioManagerEditor : Editor
 						{
 							MoveSoundUp(i);
 						}
-					using (new EditorGUI.DisabledGroupScope(i == manager.sounds.Count - 1))
+					using (new EditorGUI.DisabledGroupScope(i == sounds.Count - 1))
 						if (GUILayout.Button("↓", moveButtonStyle, GUILayout.MaxWidth(30)))
 						{
 							MoveSoundDown(i);
@@ -205,26 +218,26 @@ public class AudioManagerEditor : Editor
 					}
 				}
 
-				if (manager.sounds[i].soundVisibleInInspector)
+				if (sounds[i].soundVisibleInInspector)
 				{
 					using (new EditorGUILayout.HorizontalScope("HelpBox"))
 					{
-						AudioClip prevClip = manager.sounds[i].clip;
-						DrawSoundPropertyAt(propSounds, "clip", i);
+						AudioClip prevClip = sounds[i].clip;
+						DrawSoundPropertyAt(propsounds, "clip", i);
 
 
-						if (manager.sounds[i].clip != prevClip)
+						if (sounds[i].clip != prevClip && sounds[i].clip)
 						{
-							manager.sounds[i].soundName = manager.sounds[i].clip.name;
+							sounds[i].soundName = sounds[i].clip.name;
 						}
 
-						using (new EditorGUI.DisabledGroupScope(!manager.sounds[i].clip))
+						using (new EditorGUI.DisabledGroupScope(!sounds[i].clip))
 						{
-							DrawSoundPropertyAt(propSounds, "soundName", i, 100);
+							DrawSoundPropertyAt(propsounds, "soundName", i, 100);
 
-							if (!manager.sounds[i].soundTesting)
+							if (!sounds[i].soundTesting)
 							{
-								manager.sounds[i].soundTesting = GUILayout.Toggle(manager.sounds[i].soundTesting, "Preview", EditorStyles.miniButton, GUILayout.MaxWidth(100));
+								sounds[i].soundTesting = GUILayout.Toggle(sounds[i].soundTesting, "Preview", EditorStyles.miniButton, GUILayout.MaxWidth(100));
 							}
 							else
 							{
@@ -233,7 +246,7 @@ public class AudioManagerEditor : Editor
 									if (GUILayout.Button("❚❚", EditorStyles.miniButton, GUILayout.MaxWidth(50)))
 									{
 										previewers[i].Pause();
-										manager.sounds[i].paused = true;
+										sounds[i].paused = true;
 									}
 								}
 								if (previewers[i] != null && !previewers[i].isPlaying)
@@ -241,22 +254,24 @@ public class AudioManagerEditor : Editor
 									if (GUILayout.Button("►", EditorStyles.miniButton, GUILayout.MaxWidth(50)))
 									{
 										previewers[i].UnPause();
-										manager.sounds[i].paused = false;
+										sounds[i].paused = false;
 
 									}
 								}
-								manager.sounds[i].soundTesting = GUILayout.Toggle(manager.sounds[i].soundTesting, "■", EditorStyles.miniButton, GUILayout.MaxWidth(50));
+								sounds[i].soundTesting = GUILayout.Toggle(sounds[i].soundTesting, "■", EditorStyles.miniButton, GUILayout.MaxWidth(50));
 							}
 
-							DrawSoundPropertyAt(propSounds, "previewColor", i, 50);
+							DrawSoundPropertyAt(propsounds, "previewColor", i, 50);
+							DrawSoundPropertyAt(propsounds, "isVeryImportant", i, 15);
+							
 
-							if (manager.sounds[i].soundTesting)
+							if (sounds[i].soundTesting)
 							{
 								if (previewers[i] == null)
 								{
-									PreviewSound(manager.sounds[i], i);
+									PreviewSound(sounds[i], i);
 								}
-								else if (!previewers[i].isPlaying && !manager.sounds[i].paused)
+								else if (!previewers[i].isPlaying && !sounds[i].paused)
 								{
 									DestroySound(previewers[i], i);
 								}
@@ -270,63 +285,72 @@ public class AudioManagerEditor : Editor
 							}
 						}
 					}
-					using (new EditorGUILayout.HorizontalScope("HelpBox"))
+
+					if (sounds[i].clip)
 					{
-						if (manager.mixers.Count > 0)
+						using (new EditorGUILayout.HorizontalScope("HelpBox"))
 						{
-							GUILayout.Label("Mixers:");
-
-
-
-							List<string> mixerNames = new List<string>();
-							foreach (AudioMixerGroup m in manager.mixers)
+							if (manager.mixers.Count > 0)
 							{
-								if (m)
-									mixerNames.Add(m.name);
-								else
-									mixerNames.Add("");
-							}
-							string[] names = mixerNames.ToArray();
+								GUILayout.Label("Mixers:");
 
-							bool anyDisabled = false;
 
-							foreach (string name in names)
-							{
-								if (name == "") anyDisabled = true;
-							}
 
-							using (new EditorGUI.DisabledGroupScope(anyDisabled))
-							{
-								// NEEDS FIXING, DOESN'T STICK THROUGH PLAYS
-								var psm = manager.sounds[i].selectedMixer;
-
-								manager.sounds[i].selectedMixer = GUILayout.Toolbar(manager.sounds[i].selectedMixer, names);
-								manager.sounds[i].mixer = manager.mixers[manager.sounds[i].selectedMixer];
-
-								if (psm != manager.sounds[i].selectedMixer)
+								List<string> mixerNames = new List<string>();
+								foreach (AudioMixerGroup m in manager.mixers)
 								{
-									EditorUtility.SetDirty(target);
+									if (m)
+										mixerNames.Add(m.name);
+									else
+										mixerNames.Add("");
+								}
+
+								string[] names = mixerNames.ToArray();
+
+								bool anyDisabled = false;
+
+								foreach (string name in names)
+								{
+									if (name == "") anyDisabled = true;
+								}
+
+								using (new EditorGUI.DisabledGroupScope(anyDisabled))
+								{
+									// NEEDS FIXING, DOESN'T STICK THROUGH PLAYS
+									var psm = sounds[i].selectedMixer;
+
+									sounds[i].selectedMixer = GUILayout.Toolbar(sounds[i].selectedMixer, names);
+									sounds[i].mixer = manager.mixers[sounds[i].selectedMixer];
+
+									if (psm != sounds[i].selectedMixer)
+									{
+										EditorUtility.SetDirty(target);
+									}
 								}
 							}
 						}
-					}
 
-					DrawSoundPropertyAt(propSounds, "volume", "Volume", fieldColor, i);
-					DrawSoundPropertyAt(propSounds, "priority", "Priority", fieldColor, i);
-					DrawSoundPropertyAt(propSounds, "pitch", "Pitch", fieldColor, i);
-					DrawSoundPropertyAt(propSounds, "loop", "Loop", fieldColor, i);
-					DrawSoundPropertyAt(propSounds, "spatialBlend", "3D Sound", fieldColor, i);
-					if (manager.sounds[i].spatialBlend)
-					{
-						DrawSoundPropertyAt(propSounds, "settings.minDistance", "Minimum Distance", min, i);
-						DrawSoundPropertyAt(propSounds, "settings.maxDistance", "Maximum Distance", max, i);
-					}
-					DrawSoundPropertyAt(propSounds, "soundPreviewer", "Sound Previewer", fieldColor, i);
+						DrawSoundPropertyAt(propsounds, "volume", "Volume", fieldColor, i);
+						DrawSoundPropertyAt(propsounds, "priority", "Priority", fieldColor, i);
+						DrawSoundPropertyAt(propsounds, "pitch", "Pitch", fieldColor, i);
+						DrawSoundPropertyAt(propsounds, "loop", "Loop", fieldColor, i);
+						DrawSoundPropertyAt(propsounds, "spatialBlend", "3D Sound", fieldColor, i);
+						if (sounds[i].spatialBlend)
+						{
+							DrawSoundPropertyAt(propsounds, "settings.minDistance", "Minimum Distance", min, i);
+							DrawSoundPropertyAt(propsounds, "settings.maxDistance", "Maximum Distance", max, i);
+						}
 
+						using (new GUILayout.HorizontalScope())
+						{
+							DrawSoundPropertyAt(propsounds, "soundPreviewer", "Sound Previewer", fieldColor, i);
+							DrawSoundPropertyAt(propsounds, "soundVisibleInScene", i, 15);
+						}
+					}
 				}
 			}
+			
 			serializedObject.ApplyModifiedProperties();
-			// serializedObject.Update();
 		}
 	}
 
@@ -336,42 +360,35 @@ public class AudioManagerEditor : Editor
 		serializedObject.ApplyModifiedProperties();
 	}
 
-	[DrawGizmo(GizmoType.InSelectionHierarchy | GizmoType.NotInSelectionHierarchy)]
-	void DrawSoundSpheres()
-	{
-		for (int i = 0; i < manager.sounds.Count; i++)
-		{
-			if (Event.current.type == EventType.Repaint)
-				if (manager.sounds[i].spatialBlend && manager.sounds[i].soundPreviewer)
-				{
-					Handles.color = new Color(.5f, .5f, 1);
-					Handles.DrawWireDisc(manager.sounds[i].soundPreviewer.position, new Vector3(0, 1, 0), manager.sounds[i].settings.minDistance);
-					Handles.color = new Color(.5f, .5f, 1, .05f);
-					Handles.SphereHandleCap(0, manager.sounds[i].soundPreviewer.position, Quaternion.identity, manager.sounds[i].settings.minDistance * 2, EventType.Repaint);
-					Handles.color = new Color(manager.sounds[i].previewColor.r, manager.sounds[i].previewColor.g, manager.sounds[i].previewColor.b, 1);
-
-					Handles.DrawWireDisc(manager.sounds[i].soundPreviewer.position, new Vector3(0, 1, 0), manager.sounds[i].settings.maxDistance);
-					Handles.color = new Color(manager.sounds[i].previewColor.r, manager.sounds[i].previewColor.g, manager.sounds[i].previewColor.b, .05f);
-					Handles.SphereHandleCap(0, manager.sounds[i].soundPreviewer.position, Quaternion.identity, manager.sounds[i].settings.maxDistance * 2, EventType.Repaint);
-
-					Handles.DrawBezier(manager.transform.position, manager.sounds[i].soundPreviewer.transform.position, manager.transform.position + Vector3.down * Mathf.Abs(manager.transform.position.y - manager.sounds[i].soundPreviewer.transform.position.y), manager.sounds[i].soundPreviewer.transform.position + Vector3.up * Mathf.Abs(manager.transform.position.y - manager.sounds[i].soundPreviewer.transform.position.y), Color.cyan, Texture2D.whiteTexture, 1);
-
-				}
-		}
-	}
-
 	void OnSceneGUI()
 	{
-		DrawSoundSpheres();
+		for (int i = 0; i < sounds.Count; i++)
+		{
+			
+			if (sounds[i].soundVisibleInScene)
+			{
+				Handles.color = new Color(sounds[i].previewColor.r, sounds[i].previewColor.g, sounds[i].previewColor.b,
+					1);
+				EditorGUI.BeginChangeCheck();
+
+				float s = Handles.ScaleValueHandle(sounds[i].settings.maxDistance, sounds[i].soundPreviewer.position,
+					Quaternion.identity, sounds[i].settings.maxDistance * .5f, Handles.CubeHandleCap, .1f);
+				if (EditorGUI.EndChangeCheck())
+				{
+					sounds[i].settings.maxDistance = s;
+				}
+			}
+		}
+
 	}
 	private void AddSound()
 	{
-		manager.sounds.Add(new AudioManager.Sound(null, null, false, 128, 1, 1, false, new AudioManager.DimensionalSoundSettings()));
+		sounds.Add(new AudioManager.Sound(null, null, false, 128, 1, 1, false, new AudioManager.DimensionalSoundSettings()));
 		UpdateSoundList();
 	}
 	void RemoveSoundAt(int i)
 	{
-		manager.sounds.RemoveAt(i);
+		sounds.RemoveAt(i);
 		UpdateSoundList();
 	}
 	void PreviewSound(AudioManager.Sound sound, int i)
@@ -400,36 +417,36 @@ public class AudioManagerEditor : Editor
 		if (source != null)
 		{
 			DestroyImmediate(source.gameObject);
-			manager.sounds[i].soundTesting = false;
+			sounds[i].soundTesting = false;
 		}
 	}
 	void MoveSoundUp(int index) // 1
 	{
-		List<AudioManager.Sound> stemp = new List<AudioManager.Sound>(manager.sounds); //0, 1
-		manager.sounds[index - 1] = manager.sounds[index]; // 1,1
-		manager.sounds[index] = stemp[index - 1]; //1,0  
+		List<AudioManager.Sound> stemp = new List<AudioManager.Sound>(sounds); //0, 1
+		sounds[index - 1] = sounds[index]; // 1,1
+		sounds[index] = stemp[index - 1]; //1,0  
 	}
 	void MoveSoundDown(int index) // 0
 	{
-		List<AudioManager.Sound> stemp = new List<AudioManager.Sound>(manager.sounds); //0, 1
-		manager.sounds[index] = manager.sounds[index + 1]; // 1,1
-		manager.sounds[index + 1] = stemp[index]; //1,0
+		List<AudioManager.Sound> stemp = new List<AudioManager.Sound>(sounds); //0, 1
+		sounds[index] = sounds[index + 1]; // 1,1
+		sounds[index + 1] = stemp[index]; //1,0
 	}
 	void RemoveMixer(int i)
 	{
 		manager.mixers.RemoveAt(i);
 		// propMixers.RemoveAt(i);
 
-		for (int j = 0; j < manager.sounds.Count; j++)
+		for (int j = 0; j < sounds.Count; j++)
 		{
-			if (manager.sounds[j].selectedMixer == i)
+			if (sounds[j].selectedMixer == i)
 			{
-				manager.sounds[j].selectedMixer = 0;
+				sounds[j].selectedMixer = 0;
 
 			}
-			if (manager.sounds[j].selectedMixer > i)
+			if (sounds[j].selectedMixer > i)
 			{
-				manager.sounds[j].selectedMixer--;
+				sounds[j].selectedMixer--;
 			}
 		}
 
@@ -440,14 +457,14 @@ public class AudioManagerEditor : Editor
 		bool hasToggled = false;
 		bool hasUnToggled = false;
 
-		for (int i = 0; i < manager.sounds.Count; i++)
+		for (int i = 0; i < sounds.Count; i++)
 		{
-			if (manager.sounds[i].soundVisibleInInspector == false)
+			if (sounds[i].soundVisibleInInspector == false)
 			{
 				hasUnToggled = true;
 			}
 
-			if (manager.sounds[i].soundVisibleInInspector == true)
+			if (sounds[i].soundVisibleInInspector == true)
 			{
 				hasToggled = true;
 			}
@@ -455,25 +472,25 @@ public class AudioManagerEditor : Editor
 
 		if (hasToggled && hasUnToggled)
 		{
-			for (int i = 0; i < manager.sounds.Count; i++)
+			for (int i = 0; i < sounds.Count; i++)
 			{
-				manager.sounds[i].soundVisibleInInspector = true;
+				sounds[i].soundVisibleInInspector = true;
 			}
 		}
 
 		if (hasUnToggled && !hasToggled)
 		{
-			for (int i = 0; i < manager.sounds.Count; i++)
+			for (int i = 0; i < sounds.Count; i++)
 			{
-				manager.sounds[i].soundVisibleInInspector = true;
+				sounds[i].soundVisibleInInspector = true;
 			}
 		}
 
 		if (!hasUnToggled && hasToggled)
 		{
-			for (int i = 0; i < manager.sounds.Count; i++)
+			for (int i = 0; i < sounds.Count; i++)
 			{
-				manager.sounds[i].soundVisibleInInspector = false;
+				sounds[i].soundVisibleInInspector = false;
 			}
 		}
 	}

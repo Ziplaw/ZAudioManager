@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Audio;
@@ -16,10 +19,6 @@ public class AudioManager : MonoBehaviour
 	}
 	public List<AudioMixerGroup> mixers = new List<AudioMixerGroup>();
 	public List<Sound> sounds = new List<Sound>();
-	// public List<int> chosenMixers = new List<int>();
-	// public List<bool> soundOpen = new List<bool>();
-	// public List<bool> soundTesting = new List<bool>();
-	// public List<bool> paused = new List<bool>();
 	public static List<PlayingAudioSourceData> sources = new List<PlayingAudioSourceData>();
 	[System.Serializable]
 	public class PlayingAudioSourceData
@@ -166,7 +165,9 @@ public class AudioManager : MonoBehaviour
 	{
 		public Color previewColor;
 		public int selectedMixer;
+		public bool isVeryImportant;
 		public bool soundVisibleInInspector;
+		public bool soundVisibleInScene;
 		public bool soundTesting;
 		public bool paused;
 		public bool isPlaying;
@@ -184,10 +185,11 @@ public class AudioManager : MonoBehaviour
 
 		public Sound(AudioClip clip, AudioMixerGroup mixer, bool loop, int priority, float volume, float pitch, bool spatialBlend, DimensionalSoundSettings settings)
 		{
-			if (clip)
-				this.soundName = clip.name;
+			
+			this.soundName = clip? clip.name : "New Sound";
 			this.previewColor = new Color(.5f, 1, .5f);
 			this.clip = clip;
+			this.soundVisibleInScene = true;
 			this.mixer = mixer;
 			this.loop = loop;
 			this.priority = priority;
@@ -195,6 +197,7 @@ public class AudioManager : MonoBehaviour
 			this.pitch = pitch;
 			this.spatialBlend = spatialBlend;
 			this.settings = settings;
+			this.soundPreviewer = FindObjectOfType<AudioManager>().transform;
 		}
 
 
@@ -213,4 +216,40 @@ public class AudioManager : MonoBehaviour
 			this.maxDistance = maxDistance;
 		}
 	}
+	
+	#if UNITY_EDITOR
+
+	private void OnDrawGizmos()
+	{
+		Gizmos.DrawIcon ( transform.position, "Assets/Simple Audio Manager/Textures/sound icon.png" );
+		DrawSoundSpheres();
+	}
+	
+	void DrawSoundSpheres()
+	{
+		for (int i = 0; i < sounds.Count; i++)
+		{
+			if (Event.current.type == EventType.Repaint && sounds[i].soundVisibleInScene)
+				if (sounds[i].spatialBlend && sounds[i].soundPreviewer)
+				{
+					if (sounds[i].isVeryImportant)
+					{
+						sounds[i].previewColor = Color.HSVToRGB((((float)EditorApplication.timeSinceStartup*100) % 100)/100, 1, 1);
+					}
+					Handles.color = new Color(.5f, .5f, 1);
+					Handles.DrawWireDisc(sounds[i].soundPreviewer.position, new Vector3(0, 1, 0), sounds[i].settings.minDistance);
+					Handles.color = new Color(.5f, .5f, 1, .05f);
+					Handles.SphereHandleCap(0, sounds[i].soundPreviewer.position, Quaternion.identity, sounds[i].settings.minDistance * 2, EventType.Repaint);
+					Handles.color = new Color(sounds[i].previewColor.r, sounds[i].previewColor.g, sounds[i].previewColor.b, 1);
+
+					Handles.DrawWireDisc(sounds[i].soundPreviewer.position, new Vector3(0, 1, 0), sounds[i].settings.maxDistance);
+					Handles.color = new Color(sounds[i].previewColor.r, sounds[i].previewColor.g, sounds[i].previewColor.b, .05f);
+					Handles.SphereHandleCap(0, sounds[i].soundPreviewer.position, Quaternion.identity, sounds[i].settings.maxDistance * 2, EventType.Repaint);
+					Handles.DrawBezier(transform.position, sounds[i].soundPreviewer.transform.position, transform.position + Vector3.down * Mathf.Abs(transform.position.y - sounds[i].soundPreviewer.transform.position.y), sounds[i].soundPreviewer.transform.position + Vector3.up * Mathf.Abs(transform.position.y - sounds[i].soundPreviewer.transform.position.y), Color.cyan, Texture2D.whiteTexture, 1);
+					Handles.Label(sounds[i].soundPreviewer.position + Vector3.up * (sounds[i].settings.maxDistance + 10),sounds[i].soundName);
+				}
+		}
+	}
+	
+	#endif
 }
