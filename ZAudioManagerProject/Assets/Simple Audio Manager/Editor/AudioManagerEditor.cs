@@ -6,6 +6,8 @@ using UnityEditor;
 using UnityEngine.Audio;
 using System;
 using NUnit.Framework.Constraints;
+using UnityEditor.Graphs;
+using UnityEngine.UIElements;
 
 [ExecuteInEditMode]
 [CustomEditor(typeof(AudioManager)), CanEditMultipleObjects]
@@ -58,7 +60,7 @@ public class AudioManagerEditor : Editor
 
 		using (new EditorGUILayout.HorizontalScope())
 		{
-			GUILayout.Label(label, style, GUILayout.MaxWidth(120));
+			GUILayout.Label(label, style, GUILayout.MaxWidth(50));
 			EditorGUILayout.PropertyField(tempProp, GUIContent.none);
 		}
 		serializedObject.ApplyModifiedProperties();
@@ -76,10 +78,21 @@ public class AudioManagerEditor : Editor
 	void DrawSoundPropertyAt(SerializedProperty pList, string propertyPath, int i, float maxWidth)
 	{
 		SerializedProperty tempProp = pList.GetArrayElementAtIndex(i).FindPropertyRelative(propertyPath);
-
+		
 		using (new EditorGUILayout.HorizontalScope())
 		{
 			EditorGUILayout.PropertyField(tempProp, GUIContent.none, GUILayout.MaxWidth(maxWidth));
+		}
+		serializedObject.ApplyModifiedProperties();
+	}
+	
+	void DrawSoundPropertyAt(SerializedProperty pList, string propertyPath, int i, float maxWidth,string boolLable)
+	{
+		SerializedProperty tempProp = pList.GetArrayElementAtIndex(i).FindPropertyRelative(propertyPath);
+		
+		using (new EditorGUILayout.HorizontalScope())
+		{
+			EditorGUILayout.PropertyField(tempProp, new GUIContent("",boolLable), GUILayout.MaxWidth(maxWidth));
 		}
 		serializedObject.ApplyModifiedProperties();
 	}
@@ -262,7 +275,7 @@ public class AudioManagerEditor : Editor
 							}
 
 							DrawSoundPropertyAt(propsounds, "previewColor", i, 50);
-							DrawSoundPropertyAt(propsounds, "isVeryImportant", i, 15);
+							DrawSoundPropertyAt(propsounds, "isVeryImportant", i, 15, "Very Important Sound");
 							
 
 							if (sounds[i].soundTesting)
@@ -332,7 +345,23 @@ public class AudioManagerEditor : Editor
 
 						DrawSoundPropertyAt(propsounds, "volume", "Volume", fieldColor, i);
 						DrawSoundPropertyAt(propsounds, "priority", "Priority", fieldColor, i);
-						DrawSoundPropertyAt(propsounds, "pitch", "Pitch", fieldColor, i);
+						using (new GUILayout.HorizontalScope())
+						{
+							if (!sounds[i].pitchIsRange)
+							{
+								DrawSoundPropertyAt(propsounds, "pitch", "Pitch", fieldColor, i);
+							}
+							else
+							{
+								GUILayout.Label("Pitch", fieldColor);
+								EditorGUILayout.MinMaxSlider(ref sounds[i].pitchRange.x, ref sounds[i].pitchRange.y, 0, 3,GUILayout.MaxWidth(1000));
+								DrawSoundPropertyAt(propsounds, "pitchRange", i,300);
+							}
+
+							DrawSoundPropertyAt(propsounds, "pitchIsRange", i, 15);
+
+
+						}
 						DrawSoundPropertyAt(propsounds, "loop", "Loop", fieldColor, i);
 						DrawSoundPropertyAt(propsounds, "spatialBlend", "3D Sound", fieldColor, i);
 						if (sounds[i].spatialBlend)
@@ -401,9 +430,8 @@ public class AudioManagerEditor : Editor
 		previewers[i].outputAudioMixerGroup = sound.mixer;
 		previewers[i].loop = sound.loop;
 		previewers[i].volume = sound.volume;
-		previewers[i].pitch = sound.pitch;
+		previewers[i].pitch = sound.pitchIsRange ? UnityEngine.Random.Range(sound.pitchRange.x,sound.pitchRange.y) : sound.pitch;
 		previewers[i].priority = sound.priority;
-		previewers[i].spatialBlend = spatialBlend;
 		previewers[i].minDistance = sound.settings.minDistance;
 		previewers[i].maxDistance = sound.settings.maxDistance;
 

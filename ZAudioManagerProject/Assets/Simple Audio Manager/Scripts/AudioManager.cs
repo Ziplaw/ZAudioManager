@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Audio;
+using Random = System.Random;
 
 [System.Serializable]
 public class AudioManager : MonoBehaviour
@@ -112,11 +113,13 @@ public class AudioManager : MonoBehaviour
 		sources.Add(new PlayingAudioSourceData(soundName, source, false));
 		Sound sound = FindSoundFromName(soundName);
 
+		
+		
 		source.clip = sound.clip;
 		source.outputAudioMixerGroup = sound.mixer;
 		source.loop = sound.loop;
 		source.volume = sound.volume;
-		source.pitch = sound.pitch;
+		source.pitch = sound.pitchIsRange ? UnityEngine.Random.Range(sound.pitchRange.x,sound.pitchRange.y) : sound.pitch;
 		source.priority = sound.priority;
 		source.spatialBlend = 0;
 
@@ -128,7 +131,7 @@ public class AudioManager : MonoBehaviour
 	{
 
 		AudioSource source = new GameObject(soundName).AddComponent<AudioSource>();
-		source.gameObject.hideFlags = HideFlags.HideAndDontSave;
+		// source.gameObject.hideFlags = HideFlags.HideAndDontSave;
 		source.transform.SetParent(parent);
 		sources.Add(new PlayingAudioSourceData(soundName, source, false));
 		source.transform.position = position;
@@ -139,7 +142,7 @@ public class AudioManager : MonoBehaviour
 		source.outputAudioMixerGroup = sound.mixer;
 		source.loop = sound.loop;
 		source.volume = sound.volume;
-		source.pitch = sound.pitch;
+		source.pitch = sound.pitchIsRange ? UnityEngine.Random.Range(sound.pitchRange.x,sound.pitchRange.y) : sound.pitch;
 		source.priority = sound.priority;
 		source.spatialBlend = sound.spatialBlend ? 1 : 0;
 		source.minDistance = sound.settings.minDistance;
@@ -166,6 +169,7 @@ public class AudioManager : MonoBehaviour
 		public Color previewColor;
 		public int selectedMixer;
 		public bool isVeryImportant;
+		public bool pitchIsRange;
 		public bool soundVisibleInInspector;
 		public bool soundVisibleInScene;
 		public bool soundTesting;
@@ -178,6 +182,7 @@ public class AudioManager : MonoBehaviour
 		[Range(0, 256)] public int priority;
 		[Range(0, 1)] public float volume;
 		[Range(0, 3)] public float pitch;
+		public Vector2 pitchRange;
 		public bool spatialBlend;
 		public Transform soundPreviewer;
 
