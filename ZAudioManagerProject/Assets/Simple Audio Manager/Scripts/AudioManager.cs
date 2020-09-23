@@ -118,9 +118,9 @@ public class AudioManager : MonoBehaviour
 		source.clip = sound.clip;
 		source.outputAudioMixerGroup = sound.mixer;
 		source.loop = sound.loop;
-		source.volume = sound.volume;
+		source.volume =  sound.volumeIsRange ? UnityEngine.Random.Range(sound.volumeRange.x,sound.volumeRange.y) : sound.volume;;
 		source.pitch = sound.pitchIsRange ? UnityEngine.Random.Range(sound.pitchRange.x,sound.pitchRange.y) : sound.pitch;
-		source.priority = sound.priority;
+		source.priority = sound.priorityIsRange ? (int)UnityEngine.Random.Range(sound.priorityRange.x,sound.priorityRange.y) : sound.priority;
 		source.spatialBlend = 0;
 
 		source.Play();
@@ -141,9 +141,9 @@ public class AudioManager : MonoBehaviour
 		source.clip = sound.clip;
 		source.outputAudioMixerGroup = sound.mixer;
 		source.loop = sound.loop;
-		source.volume = sound.volume;
+		source.volume =  sound.volumeIsRange ? UnityEngine.Random.Range(sound.volumeRange.x,sound.volumeRange.y) : sound.volume;;
 		source.pitch = sound.pitchIsRange ? UnityEngine.Random.Range(sound.pitchRange.x,sound.pitchRange.y) : sound.pitch;
-		source.priority = sound.priority;
+		source.priority = sound.priorityIsRange ? (int)UnityEngine.Random.Range(sound.priorityRange.x,sound.priorityRange.y) : sound.priority;
 		source.spatialBlend = sound.spatialBlend ? 1 : 0;
 		source.minDistance = sound.settings.minDistance;
 		source.maxDistance = sound.settings.maxDistance;
@@ -169,6 +169,8 @@ public class AudioManager : MonoBehaviour
 		public Color previewColor;
 		public int selectedMixer;
 		public bool isVeryImportant;
+		public bool volumeIsRange;
+		public bool priorityIsRange;
 		public bool pitchIsRange;
 		public bool soundVisibleInInspector;
 		public bool soundVisibleInScene;
@@ -182,6 +184,8 @@ public class AudioManager : MonoBehaviour
 		[Range(0, 256)] public int priority;
 		[Range(0, 1)] public float volume;
 		[Range(0, 3)] public float pitch;
+		public Vector2 volumeRange;
+		public Vector2 priorityRange;
 		public Vector2 pitchRange;
 		public bool spatialBlend;
 		public Transform soundPreviewer;

@@ -60,7 +60,7 @@ public class AudioManagerEditor : Editor
 
 		using (new EditorGUILayout.HorizontalScope())
 		{
-			GUILayout.Label(label, style, GUILayout.MaxWidth(50));
+			GUILayout.Label(label, style, new GUILayoutOption[]{ GUILayout.Width(125)});
 			EditorGUILayout.PropertyField(tempProp, GUIContent.none);
 		}
 		serializedObject.ApplyModifiedProperties();
@@ -75,13 +75,13 @@ public class AudioManagerEditor : Editor
 		}
 		serializedObject.ApplyModifiedProperties();
 	}
-	void DrawSoundPropertyAt(SerializedProperty pList, string propertyPath, int i, float maxWidth)
+	void DrawSoundPropertyAt(SerializedProperty pList, string propertyPath, int i, GUILayoutOption[] options)
 	{
 		SerializedProperty tempProp = pList.GetArrayElementAtIndex(i).FindPropertyRelative(propertyPath);
 		
 		using (new EditorGUILayout.HorizontalScope())
 		{
-			EditorGUILayout.PropertyField(tempProp, GUIContent.none, GUILayout.MaxWidth(maxWidth));
+			EditorGUILayout.PropertyField(tempProp, GUIContent.none, options);
 		}
 		serializedObject.ApplyModifiedProperties();
 	}
@@ -97,38 +97,77 @@ public class AudioManagerEditor : Editor
 		serializedObject.ApplyModifiedProperties();
 	}
 
+	void DrawBoolLabel(ref bool condition, string label, GUIStyle style, GUILayoutOption[] options)
+	{
+		bool t = condition;
+		condition = GUILayout.Toggle(condition, label,style,options);
+		if(t != condition) EditorUtility.SetDirty(target);
+	}
+	private void DrawMinMaxSlider(ref float rangeX, ref float rangeY, int minLimit, int maxLimit, SerializedProperty serializedProperty, string propertyPath, int i, GUILayoutOption[] options)
+	{
+		EditorGUILayout.MinMaxSlider(ref rangeX, ref rangeY, minLimit, maxLimit,GUILayout.MinWidth(200));
+		DrawSoundPropertyAt(serializedProperty, propertyPath, i,options);
+	}
+
 
 	public override void OnInspectorGUI()
 	{
+		GUIStyle buttonNameToggle = new GUIStyle(GUI.skin.button);
+		buttonNameToggle.normal.textColor = new Color(1, .7f, 0);
+		buttonNameToggle.active.textColor = Color.cyan;
+		buttonNameToggle.hover.textColor = Color.cyan;
+		buttonNameToggle.font = (Font)Resources.Load("Fonts/Retron2000");
+		
+		GUIStyle buttonNameToggleBig = new GUIStyle(buttonNameToggle);
+		buttonNameToggleBig.fontSize = 30;
+		
+		GUIStyle toolbarButton = new GUIStyle(EditorStyles.miniButtonMid);
+		toolbarButton.normal.textColor = new Color(1, .7f, 0);
+		toolbarButton.active.textColor = Color.cyan;
+		toolbarButton.font = (Font)Resources.Load("Fonts/Retron2000");
+		toolbarButton.fontSize = 20;
+		toolbarButton.fixedHeight = 30;
+
+
+		
+		
 		// serializedObject.Update();
 		GUIStyle fieldColor = new GUIStyle(GUI.skin.label);
 		fieldColor.normal.textColor = new Color(1, .7f, 0);
+		fieldColor.font = (Font)Resources.Load("Fonts/Retron2000");
 		
 		GUIStyle nullFieldColor = new GUIStyle(GUI.skin.label);
 		nullFieldColor.normal.textColor = Color.red;
+		nullFieldColor.font = (Font)Resources.Load("Fonts/Retron2000");
 
 		GUIStyle min = new GUIStyle(GUI.skin.label);
 		GUIStyle max = new GUIStyle(GUI.skin.label);
 		min.normal.textColor = new Color(.5f, .5f, 1);
+		min.font = (Font)Resources.Load("Fonts/Retron2000");
 		max.normal.textColor = new Color(.5f, 1, .5f);
+		max.font = (Font)Resources.Load("Fonts/Retron2000");
 
 		removeButtonStyle = new GUIStyle(GUI.skin.button);
 		removeButtonStyle.normal.textColor = new Color(1, .5f, .5f);
+		removeButtonStyle.font = (Font)Resources.Load("Fonts/Retron2000");
 
 		moveButtonStyle = new GUIStyle(GUI.skin.button);
 		moveButtonStyle.normal.textColor = new Color(.5f, .5f, 1);
+		moveButtonStyle.font = (Font)Resources.Load("Fonts/Retron2000");
 
 		GUIStyle hoverableButton = new GUIStyle(EditorStyles.toolbarButton);
 		hoverableButton.normal.textColor = fieldColor.normal.textColor;
 		hoverableButton.hover.textColor = new Color(0, 1, .7f);
 		hoverableButton.focused.textColor = new Color(0, 1, .9f);
 		hoverableButton.active.textColor = new Color(0, 1, .9f);
+		hoverableButton.font = (Font)Resources.Load("Fonts/Retron2000");
 		
 		GUIStyle nullHoverableButton = new GUIStyle(EditorStyles.toolbarButton);
 		nullHoverableButton.normal.textColor = Color.red;
 		nullHoverableButton.hover.textColor = new Color(0, 1, .7f);
 		nullHoverableButton.focused.textColor = new Color(0, 1, .9f);
 		nullHoverableButton.active.textColor = new Color(0, 1, .9f);
+		nullHoverableButton.font = (Font)Resources.Load("Fonts/Retron2000");
 		
 		
 
@@ -246,7 +285,7 @@ public class AudioManagerEditor : Editor
 
 						using (new EditorGUI.DisabledGroupScope(!sounds[i].clip))
 						{
-							DrawSoundPropertyAt(propsounds, "soundName", i, 100);
+							DrawSoundPropertyAt(propsounds, "soundName", i, new GUILayoutOption[] { GUILayout.MaxWidth(100)});
 
 							if (!sounds[i].soundTesting)
 							{
@@ -274,7 +313,7 @@ public class AudioManagerEditor : Editor
 								sounds[i].soundTesting = GUILayout.Toggle(sounds[i].soundTesting, "■", EditorStyles.miniButton, GUILayout.MaxWidth(50));
 							}
 
-							DrawSoundPropertyAt(propsounds, "previewColor", i, 50);
+							DrawSoundPropertyAt(propsounds, "previewColor", i, new GUILayoutOption[] { GUILayout.Width(50)});
 							DrawSoundPropertyAt(propsounds, "isVeryImportant", i, 15, "Very Important Sound");
 							
 
@@ -305,7 +344,7 @@ public class AudioManagerEditor : Editor
 						{
 							if (manager.mixers.Count > 0)
 							{
-								GUILayout.Label("Mixers:");
+								GUILayout.Label("Mixers:",fieldColor,GUILayout.Height(30));
 
 
 
@@ -329,10 +368,9 @@ public class AudioManagerEditor : Editor
 
 								using (new EditorGUI.DisabledGroupScope(anyDisabled))
 								{
-									// NEEDS FIXING, DOESN'T STICK THROUGH PLAYS
 									var psm = sounds[i].selectedMixer;
 
-									sounds[i].selectedMixer = GUILayout.Toolbar(sounds[i].selectedMixer, names);
+									sounds[i].selectedMixer = GUILayout.Toolbar(sounds[i].selectedMixer, names,toolbarButton /*,GUILayout.MaxHeight(50)*/);
 									sounds[i].mixer = manager.mixers[sounds[i].selectedMixer];
 
 									if (psm != sounds[i].selectedMixer)
@@ -343,27 +381,47 @@ public class AudioManagerEditor : Editor
 							}
 						}
 
-						DrawSoundPropertyAt(propsounds, "volume", "Volume", fieldColor, i);
-						DrawSoundPropertyAt(propsounds, "priority", "Priority", fieldColor, i);
 						using (new GUILayout.HorizontalScope())
 						{
-							if (!sounds[i].pitchIsRange)
-							{
-								DrawSoundPropertyAt(propsounds, "pitch", "Pitch", fieldColor, i);
-							}
+							DrawBoolLabel(ref sounds[i].volumeIsRange, "Volume", buttonNameToggle, new GUILayoutOption[] {GUILayout.Width(100)});
+							if (!sounds[i].volumeIsRange)
+								DrawSoundPropertyAt(propsounds, "volume", i);
 							else
-							{
-								GUILayout.Label("Pitch", fieldColor);
-								EditorGUILayout.MinMaxSlider(ref sounds[i].pitchRange.x, ref sounds[i].pitchRange.y, 0, 3,GUILayout.MaxWidth(1000));
-								DrawSoundPropertyAt(propsounds, "pitchRange", i,300);
-							}
+								DrawMinMaxSlider(ref sounds[i].volumeRange.x, ref sounds[i].volumeRange.y, 0, 1,propsounds, "volumeRange", i,new GUILayoutOption[] { GUILayout.MaxWidth(200)});
 
-							DrawSoundPropertyAt(propsounds, "pitchIsRange", i, 15);
-
-
+							
+							
+							// DrawSoundPropertyAt(propsounds, "volume", i);
 						}
-						DrawSoundPropertyAt(propsounds, "loop", "Loop", fieldColor, i);
-						DrawSoundPropertyAt(propsounds, "spatialBlend", "3D Sound", fieldColor, i);
+
+						using (new GUILayout.HorizontalScope())
+						{
+							DrawBoolLabel(ref sounds[i].priorityIsRange, "Priority", buttonNameToggle,new GUILayoutOption[] {GUILayout.Width(100)});
+							
+							if (!sounds[i].priorityIsRange)
+								DrawSoundPropertyAt(propsounds, "priority", i);
+							else
+								DrawMinMaxSlider(ref sounds[i].priorityRange.x, ref sounds[i].priorityRange.y, 0, 256,propsounds, "priorityRange", i,new GUILayoutOption[] { GUILayout.MaxWidth(200)});
+
+							
+							// DrawSoundPropertyAt(propsounds, "priority", i);
+						}
+
+						using (new GUILayout.HorizontalScope())
+						{
+							DrawBoolLabel(ref sounds[i].pitchIsRange, "Pitch",buttonNameToggle,new GUILayoutOption[] {GUILayout.Width(100)});
+							
+							if (!sounds[i].pitchIsRange)
+								DrawSoundPropertyAt(propsounds, "pitch", i);
+							else
+								DrawMinMaxSlider(ref sounds[i].pitchRange.x, ref sounds[i].pitchRange.y, 0, 3,propsounds, "pitchRange", i,new GUILayoutOption[] { GUILayout.MaxWidth(200)});
+							
+						}
+						
+						DrawBoolLabel(ref sounds[i].loop, "Loop",buttonNameToggleBig,new GUILayoutOption[] {GUILayout.MinWidth(100), GUILayout.MinHeight(50)});
+						DrawBoolLabel(ref sounds[i].spatialBlend, "3D Sound",buttonNameToggleBig,new GUILayoutOption[] {GUILayout.MinWidth(100), GUILayout.MinHeight(50)});
+						// DrawSoundPropertyAt(propsounds, "loop", "Loop", fieldColor, i);
+						// DrawSoundPropertyAt(propsounds, "spatialBlend", "3D Sound", fieldColor, i);
 						if (sounds[i].spatialBlend)
 						{
 							DrawSoundPropertyAt(propsounds, "settings.minDistance", "Minimum Distance", min, i);
@@ -373,7 +431,7 @@ public class AudioManagerEditor : Editor
 						using (new GUILayout.HorizontalScope())
 						{
 							DrawSoundPropertyAt(propsounds, "soundPreviewer", "Sound Previewer", fieldColor, i);
-							DrawSoundPropertyAt(propsounds, "soundVisibleInScene", i, 15);
+							DrawSoundPropertyAt(propsounds, "soundVisibleInScene", i, new GUILayoutOption[] { GUILayout.Width(15)});
 						}
 					}
 				}
@@ -382,6 +440,8 @@ public class AudioManagerEditor : Editor
 			serializedObject.ApplyModifiedProperties();
 		}
 	}
+
+	
 
 	private void AddMixer()
 	{
@@ -429,9 +489,9 @@ public class AudioManagerEditor : Editor
 		previewers[i].clip = sound.clip;
 		previewers[i].outputAudioMixerGroup = sound.mixer;
 		previewers[i].loop = sound.loop;
-		previewers[i].volume = sound.volume;
+		previewers[i].volume = sound.volumeIsRange ? UnityEngine.Random.Range(sound.volumeRange.x,sound.volumeRange.y) : sound.volume;
 		previewers[i].pitch = sound.pitchIsRange ? UnityEngine.Random.Range(sound.pitchRange.x,sound.pitchRange.y) : sound.pitch;
-		previewers[i].priority = sound.priority;
+		previewers[i].priority = sound.priorityIsRange ? (int)UnityEngine.Random.Range(sound.priorityRange.x,sound.priorityRange.y) : sound.priority;
 		previewers[i].minDistance = sound.settings.minDistance;
 		previewers[i].maxDistance = sound.settings.maxDistance;
 

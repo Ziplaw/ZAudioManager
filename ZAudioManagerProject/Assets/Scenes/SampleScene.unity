@@ -475,11 +475,14 @@ MonoBehaviour:
   mixers:
   - {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
   - {fileID: -3521167275573346520, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
+  - {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
   sounds:
-  - previewColor: {r: 0.94018555, g: 0, b: 1, a: 1}
-    selectedMixer: 0
+  - previewColor: {r: 1, g: 0, b: 0.01171875, a: 1}
+    selectedMixer: 2
     isVeryImportant: 0
-    pitchIsRange: 1
+    volumeIsRange: 0
+    priorityIsRange: 0
+    pitchIsRange: 0
     soundVisibleInInspector: 1
     soundVisibleInScene: 1
     soundTesting: 0
@@ -488,13 +491,15 @@ MonoBehaviour:
     soundName: s1
     clip: {fileID: 8300000, guid: 40d0fb65c83046748a3aacb8cbde687f, type: 3}
     mixer: {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
-    loop: 1
+    loop: 0
     priority: 194
-    volume: 1
+    volume: 0.743
     pitch: 1.13
-    pitchRange: {x: 0.81873715, y: 1.4480648}
+    volumeRange: {x: 0.16151206, y: 0.32989693}
+    priorityRange: {x: 171.54639, y: 237.52577}
+    pitchRange: {x: 0.29896903, y: 1.0309284}
     spatialBlend: 1
-    soundPreviewer: {fileID: 37883247734227524}
+    soundPreviewer: {fileID: 484645491}
     settings:
-      minDistance: 204.6
-      maxDistance: 275
+      minDistance: 123
+      maxDistance: 277
