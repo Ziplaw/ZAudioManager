@@ -13,7 +13,7 @@ using UnityEngine.UIElements;
 [CustomEditor(typeof(AudioManager)), CanEditMultipleObjects]
 public class AudioManagerEditor : Editor
 {
-	GUIStyle removeButtonStyle, moveButtonStyle;
+	GUIStyle removeButtonStyle, moveButtonStyle, buttonNameToggle, buttonNameToggleBig, toolbarButton, fieldColor, nullFieldColor, min, max,hoverableButton,nullHoverableButton;
 	AudioManager manager;
 	List<AudioSource> previewers = new List<AudioSource>();
 	SerializedProperty propMixers;
@@ -21,6 +21,8 @@ public class AudioManagerEditor : Editor
 
 
 	private List<AudioManager.Sound> sounds => manager.sounds;
+	
+	
 
 	void OnEnable()
 	{
@@ -30,6 +32,65 @@ public class AudioManagerEditor : Editor
 
 		UpdateMixerList();
 		UpdateSoundList();
+		
+		// SetupAudioManagerStyles();
+
+	}
+
+	void SetupAudioManagerStyles()
+	{
+		buttonNameToggle = new GUIStyle(GUI.skin.button);
+		buttonNameToggle.normal.textColor = new Color(1, .7f, 0);
+		buttonNameToggle.active.textColor = Color.cyan;
+		buttonNameToggle.hover.textColor = Color.cyan;
+		buttonNameToggle.font = (Font)Resources.Load("Fonts/Retron2000");
+		
+		buttonNameToggleBig = new GUIStyle(buttonNameToggle);
+		buttonNameToggleBig.fontSize = 30;
+		
+		toolbarButton = new GUIStyle(EditorStyles.miniButtonMid);
+		toolbarButton.normal.textColor = new Color(1, .7f, 0);
+		toolbarButton.active.textColor = Color.cyan;
+		toolbarButton.font = (Font)Resources.Load("Fonts/Retron2000");
+		toolbarButton.fontSize = 20;
+		toolbarButton.fixedHeight = 30;
+		
+		fieldColor = new GUIStyle(GUI.skin.label);
+		fieldColor.normal.textColor = new Color(1, .7f, 0);
+		fieldColor.font = (Font)Resources.Load("Fonts/Retron2000");
+		
+		nullFieldColor = new GUIStyle(GUI.skin.label);
+		nullFieldColor.normal.textColor = Color.red;
+		nullFieldColor.font = (Font)Resources.Load("Fonts/Retron2000");
+
+		min = new GUIStyle(GUI.skin.label);
+		max = new GUIStyle(GUI.skin.label);
+		min.normal.textColor = new Color(.5f, .5f, 1);
+		min.font = (Font)Resources.Load("Fonts/Retron2000");
+		max.normal.textColor = new Color(.5f, 1, .5f);
+		max.font = (Font)Resources.Load("Fonts/Retron2000");
+
+		removeButtonStyle = new GUIStyle(GUI.skin.button);
+		removeButtonStyle.normal.textColor = new Color(1, .5f, .5f);
+		removeButtonStyle.font = (Font)Resources.Load("Fonts/Retron2000");
+
+		moveButtonStyle = new GUIStyle(GUI.skin.button);
+		moveButtonStyle.normal.textColor = new Color(.5f, .5f, 1);
+		moveButtonStyle.font = (Font)Resources.Load("Fonts/Retron2000");
+
+		hoverableButton = new GUIStyle(EditorStyles.toolbarButton);
+		hoverableButton.normal.textColor = fieldColor.normal.textColor;
+		hoverableButton.hover.textColor = new Color(0, 1, .7f);
+		hoverableButton.focused.textColor = new Color(0, 1, .9f);
+		hoverableButton.active.textColor = new Color(0, 1, .9f);
+		hoverableButton.font = (Font)Resources.Load("Fonts/Retron2000");
+		
+		nullHoverableButton = new GUIStyle(EditorStyles.toolbarButton);
+		nullHoverableButton.normal.textColor = Color.red;
+		nullHoverableButton.hover.textColor = new Color(0, 1, .7f);
+		nullHoverableButton.focused.textColor = new Color(0, 1, .9f);
+		nullHoverableButton.active.textColor = new Color(0, 1, .9f);
+		nullHoverableButton.font = (Font)Resources.Load("Fonts/Retron2000");
 	}
 
 	private void UpdateMixerList()
@@ -112,67 +173,10 @@ public class AudioManagerEditor : Editor
 
 	public override void OnInspectorGUI()
 	{
-		GUIStyle buttonNameToggle = new GUIStyle(GUI.skin.button);
-		buttonNameToggle.normal.textColor = new Color(1, .7f, 0);
-		buttonNameToggle.active.textColor = Color.cyan;
-		buttonNameToggle.hover.textColor = Color.cyan;
-		buttonNameToggle.font = (Font)Resources.Load("Fonts/Retron2000");
 		
-		GUIStyle buttonNameToggleBig = new GUIStyle(buttonNameToggle);
-		buttonNameToggleBig.fontSize = 30;
-		
-		GUIStyle toolbarButton = new GUIStyle(EditorStyles.miniButtonMid);
-		toolbarButton.normal.textColor = new Color(1, .7f, 0);
-		toolbarButton.active.textColor = Color.cyan;
-		toolbarButton.font = (Font)Resources.Load("Fonts/Retron2000");
-		toolbarButton.fontSize = 20;
-		toolbarButton.fixedHeight = 30;
-
-
-		
-		
-		// serializedObject.Update();
-		GUIStyle fieldColor = new GUIStyle(GUI.skin.label);
-		fieldColor.normal.textColor = new Color(1, .7f, 0);
-		fieldColor.font = (Font)Resources.Load("Fonts/Retron2000");
-		
-		GUIStyle nullFieldColor = new GUIStyle(GUI.skin.label);
-		nullFieldColor.normal.textColor = Color.red;
-		nullFieldColor.font = (Font)Resources.Load("Fonts/Retron2000");
-
-		GUIStyle min = new GUIStyle(GUI.skin.label);
-		GUIStyle max = new GUIStyle(GUI.skin.label);
-		min.normal.textColor = new Color(.5f, .5f, 1);
-		min.font = (Font)Resources.Load("Fonts/Retron2000");
-		max.normal.textColor = new Color(.5f, 1, .5f);
-		max.font = (Font)Resources.Load("Fonts/Retron2000");
-
-		removeButtonStyle = new GUIStyle(GUI.skin.button);
-		removeButtonStyle.normal.textColor = new Color(1, .5f, .5f);
-		removeButtonStyle.font = (Font)Resources.Load("Fonts/Retron2000");
-
-		moveButtonStyle = new GUIStyle(GUI.skin.button);
-		moveButtonStyle.normal.textColor = new Color(.5f, .5f, 1);
-		moveButtonStyle.font = (Font)Resources.Load("Fonts/Retron2000");
-
-		GUIStyle hoverableButton = new GUIStyle(EditorStyles.toolbarButton);
-		hoverableButton.normal.textColor = fieldColor.normal.textColor;
-		hoverableButton.hover.textColor = new Color(0, 1, .7f);
-		hoverableButton.focused.textColor = new Color(0, 1, .9f);
-		hoverableButton.active.textColor = new Color(0, 1, .9f);
-		hoverableButton.font = (Font)Resources.Load("Fonts/Retron2000");
-		
-		GUIStyle nullHoverableButton = new GUIStyle(EditorStyles.toolbarButton);
-		nullHoverableButton.normal.textColor = Color.red;
-		nullHoverableButton.hover.textColor = new Color(0, 1, .7f);
-		nullHoverableButton.focused.textColor = new Color(0, 1, .9f);
-		nullHoverableButton.active.textColor = new Color(0, 1, .9f);
-		nullHoverableButton.font = (Font)Resources.Load("Fonts/Retron2000");
-		
-		
-
 		// base.DrawDefaultInspector();
-
+		// return;
+		SetupAudioManagerStyles();
 		// EditorGUILayout.PropertyField(propMixers);
 
 

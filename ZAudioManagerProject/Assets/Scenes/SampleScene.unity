@@ -480,9 +480,9 @@ MonoBehaviour:
   - previewColor: {r: 1, g: 0, b: 0.01171875, a: 1}
     selectedMixer: 2
     isVeryImportant: 0
-    volumeIsRange: 0
+    volumeIsRange: 1
     priorityIsRange: 0
-    pitchIsRange: 0
+    pitchIsRange: 1
     soundVisibleInInspector: 1
     soundVisibleInScene: 1
     soundTesting: 0
@@ -495,7 +495,7 @@ MonoBehaviour:
     priority: 194
     volume: 0.743
     pitch: 1.13
-    volumeRange: {x: 0.16151206, y: 0.32989693}
+    volumeRange: {x: 0.55670106, y: 0.72508603}
     priorityRange: {x: 171.54639, y: 237.52577}
     pitchRange: {x: 0.29896903, y: 1.0309284}
     spatialBlend: 1
