@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 #if UNITY_EDITOR
@@ -122,7 +123,8 @@ public class AudioManager : MonoBehaviour
 		source.pitch = sound.pitchIsRange ? UnityEngine.Random.Range(sound.pitchRange.x,sound.pitchRange.y) : sound.pitch;
 		source.priority = sound.priorityIsRange ? (int)UnityEngine.Random.Range(sound.priorityRange.x,sound.priorityRange.y) : sound.priority;
 		source.spatialBlend = 0;
-
+		
+		sound.e?.Invoke();
 		source.Play();
 
 	}
@@ -148,6 +150,7 @@ public class AudioManager : MonoBehaviour
 		source.minDistance = sound.settings.minDistance;
 		source.maxDistance = sound.settings.maxDistance;
 
+		sound.e?.Invoke();
 		source.Play();
 	}
 
@@ -162,6 +165,13 @@ public class AudioManager : MonoBehaviour
 
 	}
 
+	[System.Serializable]
+	public class DelegateWrapper
+	{
+		public GameObject eventHolder;
+		public string eventName;
+	}
+	
 	//Clase contenedora de sonidos y otras movidas
 	[System.Serializable]
 	public class Sound
@@ -187,13 +197,25 @@ public class AudioManager : MonoBehaviour
 		public Vector2 volumeRange;
 		public Vector2 priorityRange;
 		public Vector2 pitchRange;
+		public bool unityEventsVisible;
+		public UnityEvent e;
 		public bool spatialBlend;
 		public Transform soundPreviewer;
-
+		public DelegateWrapper delegateWrapper;
+		
 		public DimensionalSoundSettings settings = new DimensionalSoundSettings();
+		public int eventTypeSelected;
+		public int selectedComponent;
+		public int selectedEvent;
 
+		public void PlaySoundSubscribe()
+		{
+			Console.WriteLine("Event successfully subscribed and running");
+		}
+		
 		public Sound(AudioClip clip, AudioMixerGroup mixer, bool loop, int priority, float volume, float pitch, bool spatialBlend, DimensionalSoundSettings settings)
 		{
+			delegateWrapper = new DelegateWrapper();
 			
 			this.soundName = clip? clip.name : "New Sound";
 			this.previewColor = new Color(.5f, 1, .5f);
@@ -208,10 +230,6 @@ public class AudioManager : MonoBehaviour
 			this.settings = settings;
 			this.soundPreviewer = FindObjectOfType<AudioManager>().transform;
 		}
-
-
-
-
 	}
 	[System.Serializable]
 	public struct DimensionalSoundSettings

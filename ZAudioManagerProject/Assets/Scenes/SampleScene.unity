@@ -421,7 +421,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1724244826}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -89, y: -200, z: 295}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -477,12 +477,12 @@ MonoBehaviour:
   - {fileID: -3521167275573346520, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
   - {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
   sounds:
-  - previewColor: {r: 1, g: 0, b: 0.01171875, a: 1}
-    selectedMixer: 2
+  - previewColor: {r: 0.5, g: 1, b: 0.5, a: 1}
+    selectedMixer: 0
     isVeryImportant: 0
-    volumeIsRange: 1
+    volumeIsRange: 0
     priorityIsRange: 0
-    pitchIsRange: 1
+    pitchIsRange: 0
     soundVisibleInInspector: 1
     soundVisibleInScene: 1
     soundTesting: 0
@@ -492,14 +492,35 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 40d0fb65c83046748a3aacb8cbde687f, type: 3}
     mixer: {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
     loop: 0
-    priority: 194
-    volume: 0.743
-    pitch: 1.13
-    volumeRange: {x: 0.55670106, y: 0.72508603}
-    priorityRange: {x: 171.54639, y: 237.52577}
-    pitchRange: {x: 0.29896903, y: 1.0309284}
-    spatialBlend: 1
-    soundPreviewer: {fileID: 484645491}
+    priority: 128
+    volume: 1
+    pitch: 1
+    volumeRange: {x: 0, y: 0}
+    priorityRange: {x: 0, y: 0}
+    pitchRange: {x: 0, y: 0}
+    unityEventsVisible: 1
+    e:
+      m_PersistentCalls:
+        m_Calls:
+        - m_Target: {fileID: 484645489}
+          m_MethodName: 
+          m_Mode: 1
+          m_Arguments:
+            m_ObjectArgument: {fileID: 0}
+            m_ObjectArgumentAssemblyTypeName: 
+            m_IntArgument: 0
+            m_FloatArgument: 0
+            m_StringArgument: 
+            m_BoolArgument: 0
+          m_CallState: 2
+    spatialBlend: 0
+    soundPreviewer: {fileID: 37883247734227524}
+    delegateWrapper:
+      eventHolder: {fileID: 484645489}
+      eventName: testEvent
     settings:
-      minDistance: 123
-      maxDistance: 277
+      minDistance: 0
+      maxDistance: 0
+    eventTypeSelected: 1
+    selectedComponent: 1
+    selectedEvent: 1
