@@ -410,24 +410,7 @@ public class AudioManagerEditor : Editor
                             }
                         }
 
-                        DrawBoolLabel(ref sounds[i].unityEventsVisible, "Events", buttonNameToggle,
-                            new GUILayoutOption[] {GUILayout.MinWidth(100), GUILayout.MinHeight(15)});
-                        if (sounds[i].unityEventsVisible)
-                        {
-                            sounds[i].eventTypeSelected = GUILayout.Toolbar(sounds[i].eventTypeSelected,
-                                new string[] {"Cause", "Effect"}, toolbarButton);
-                            switch (sounds[i].eventTypeSelected)
-                            {
-                                case 0:
-                                    DrawSoundPropertyAt(propsounds, "e", i);
-                                    break;
-                                case 1:
-                                    DrawDelegateFinder(i);
-                                    break;
-                            }
-                        }
-
-                        if (!sounds[i].unityEventsVisible)
+                        // if (!sounds[i].unityEventsVisible)
                         {
                             using (new GUILayout.HorizontalScope())
                             {
@@ -483,6 +466,23 @@ public class AudioManagerEditor : Editor
                                     DrawSoundPropertyAt(propsounds, "soundPreviewer", "Sound Previewer", fieldColor, i);
                                     DrawSoundPropertyAt(propsounds, "soundVisibleInScene", i,
                                         new GUILayoutOption[] {GUILayout.Width(15)});
+                                }
+                            }
+                            
+                            DrawBoolLabel(ref sounds[i].unityEventsVisible, "Events", buttonNameToggle,
+                                new GUILayoutOption[] {GUILayout.MinWidth(100), GUILayout.MinHeight(15)});
+                            if (sounds[i].unityEventsVisible)
+                            {
+                                sounds[i].eventTypeSelected = GUILayout.Toolbar(sounds[i].eventTypeSelected,
+                                    new string[] {"Cause", "Effect"}, toolbarButton);
+                                switch (sounds[i].eventTypeSelected)
+                                {
+                                    case 0:
+                                        DrawSoundPropertyAt(propsounds, "e", i);
+                                        break;
+                                    case 1:
+                                        DrawDelegateFinder(i);
+                                        break;
                                 }
                             }
                         }
