@@ -2,6 +2,9 @@
 using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using TMPro;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -40,7 +43,13 @@ public class AudioManager : MonoBehaviour
 	{
 		i = i == null ? this : i;
 
+		for (int j = 0; j < sounds.Count; j++)
+		{
+			sounds[j].SubscribeMethodToEvents();
+		}
 	}
+
+	
 
 	void Update()
 	{
@@ -48,7 +57,7 @@ public class AudioManager : MonoBehaviour
 		{
 			if (!sources[j].playingAudioSource.isPlaying && !sources[j].isPaused)
 			{
-				Destroy(sources[j].playingAudioSource.gameObject);
+				Destroy(sources[j].playingAudioSource.gameObject.GetComponent<AudioSource>());
 				sources.RemoveAt(j);
 			}
 		}
@@ -163,13 +172,64 @@ public class AudioManager : MonoBehaviour
 
 		data.isPaused = !data.isPaused;
 
-	}
-
+	} 
+	
 	[System.Serializable]
-	public class DelegateWrapper
+	public class EventHolder
 	{
-		public GameObject eventHolder;
-		public string eventName;
+		public GameObject eventer;
+
+		public List<string> eventInfoNames
+		{
+			get
+			{
+				List<string> temp = new List<string>();
+				
+				for (int j = 0; j < _mask.Length; j++)
+				{
+					if(_mask[j]) temp.Add(usableEvents[j].Name);
+				}
+
+				return temp;
+			}
+		}
+		
+		public int selectedComponent;
+		public int selectedEvents;
+
+		private string _selectedEventsBin => System.Convert.ToString(selectedEvents, 2);
+		public bool[] _mask 
+		{
+			set => _mask = _mask;
+			get
+			{
+				bool[] temp = new bool[_selectedEventsBin.ToCharArray().Length];
+				
+				for (int j = 0; j < temp.Length; j++)
+				{
+					temp[j] = _selectedEventsBin.ToCharArray()[temp.Length - j-1] == '1';
+				}
+				return temp;
+			}
+	}
+		
+
+		public Component[] components => eventer.GetComponents<Component>();
+
+		public EventInfo[] usableEvents
+		{
+			get
+			{
+				EventInfo[] eventInfoes = components[selectedComponent].GetType().GetEvents();
+				List<EventInfo> temp = new List<EventInfo>();
+				for (int j = 0; j < eventInfoes.Length; j++)
+				{
+					if(eventInfoes[j].EventHandlerType.GetMethod("Invoke").GetParameters().Length == 0) temp.Add(eventInfoes[j]);
+				}
+
+				return temp.ToArray();
+			}
+		}
 	}
 	
 	//Clase contenedora de sonidos y otras movidas
@@ -201,22 +261,55 @@ public class AudioManager : MonoBehaviour
 		public UnityEvent e;
 		public bool spatialBlend;
 		public Transform soundPreviewer;
-		public DelegateWrapper delegateWrapper;
 		
 		public DimensionalSoundSettings settings = new DimensionalSoundSettings();
 		public int eventTypeSelected;
-		public int selectedComponent;
-		public int selectedEvent;
+		// public int selectedComponent;
+		// public int selectedEvents;
+		// public List<string> eventInfoNames;
+		// public List<GameObject> eventHolders;
+		public List<EventHolder> eventHolderList;
 
+
+		public void SubscribeMethodToEvents()
+		{
+			for (int l = 0; l < eventHolderList.Count; l++)
+			{
+				EventHolder holder = eventHolderList[l];
+
+				for (int j = 0; j < holder.eventInfoNames.Count; j++)
+				{
+					Component _selectedComponent = holder.eventer.GetComponents(typeof(Component))[holder.selectedComponent];
+
+					EventInfo selectedEvent = null;
+					for (int k = 0; k < holder.usableEvents.Length; k++)
+					{
+						if (holder.usableEvents[k].Name == holder.eventInfoNames[j])
+						{
+							selectedEvent = holder.usableEvents[k];
+							Debug.Log(k + " " + holder.eventInfoNames[j] + " subscribed ");
+							break;
+						}
+					}
+
+					if (selectedEvent == null) return;
+					Delegate d = Delegate.CreateDelegate(selectedEvent.EventHandlerType, this, "PlaySoundSubscribe");
+
+					selectedEvent.AddEventHandler(_selectedComponent, d);
+
+					EditorUtility.SetDirty(_selectedComponent);
+				}
+			}
+		}
+		
+		
 		public void PlaySoundSubscribe()
 		{
-			Console.WriteLine("Event successfully subscribed and running");
+			Play(soundName);
 		}
 		
 		public Sound(AudioClip clip, AudioMixerGroup mixer, bool loop, int priority, float volume, float pitch, bool spatialBlend, DimensionalSoundSettings settings)
 		{
-			delegateWrapper = new DelegateWrapper();
-			
 			this.soundName = clip? clip.name : "New Sound";
 			this.previewColor = new Color(.5f, 1, .5f);
 			this.clip = clip;

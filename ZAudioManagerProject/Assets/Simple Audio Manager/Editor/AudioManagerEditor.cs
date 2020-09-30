@@ -44,6 +44,15 @@ public class AudioManagerEditor : Editor
         UpdateMixerList();
         UpdateSoundList();
 
+        for (int i = 0; i < manager.sounds.Count; i++)
+        {
+            if (manager.sounds[i].eventHolderList == null)
+            {
+                manager.sounds[i].eventHolderList = new List<AudioManager.EventHolder>();
+            }
+        }
+
+
         // SetupAudioManagerStyles();
     }
 
@@ -133,7 +142,7 @@ public class AudioManagerEditor : Editor
 
         using (new EditorGUILayout.HorizontalScope())
         {
-            GUILayout.Label(label, style, new GUILayoutOption[] {GUILayout.Width(100)});
+            GUILayout.Label(label, style, new GUILayoutOption[] {GUILayout.Width(120)});
             EditorGUILayout.PropertyField(tempProp, GUIContent.none);
         }
 
@@ -497,81 +506,128 @@ public class AudioManagerEditor : Editor
 
     private void DrawDelegateFinder(int i)
     {
-        using (new GUILayout.HorizontalScope("HelpBox"))
-        {
-            DrawSoundPropertyAt(propsounds, "delegateWrapper.eventHolder", i);
-            int j = sounds[i].selectedComponent;
-            GUILayout.Label("Component: ",fieldColor);
-            sounds[i].selectedComponent = EditorGUILayout.Popup(sounds[i].selectedComponent,
-                GetNamesFromComponents(sounds[i].delegateWrapper.eventHolder.GetComponents(typeof(Component))));
-            if (j != sounds[i].selectedComponent) EditorUtility.SetDirty(target);
-        }
-
-        EventInfo[] eventInfos = sounds[i].delegateWrapper.eventHolder.GetComponents(typeof(Component))[sounds[i].selectedComponent].GetType().GetEvents();
-        string[] eventNames = GetNamesFromEvents(eventInfos);
-
         using (new GUILayout.HorizontalScope())
         {
-            GUILayout.Label("Event: ", fieldColor,GUILayout.MaxWidth(50));
-
-            int k = sounds[i].selectedEvent;
-            sounds[i].selectedEvent = EditorGUILayout.Popup(sounds[i].selectedEvent, GetNamesFromEvents(eventInfos));
-            if (k != sounds[i].selectedEvent) EditorUtility.SetDirty(target);
-
-            if(GUILayout.Button("Subscribe",buttonNameToggle))
+            if (GUILayout.Button(" + ", buttonNameToggle))
             {
-                // sounds[i].delegateWrapper.eventHolder.GetComponents(typeof(Component))[sounds[i].selectedComponent].GetType().GetEvent(eventNames[sounds[i].selectedEvent]).
-                // AddEventHandler(,sounds[i].PlaySoundSubscribe());
-                AddEventHandler(eventInfos[sounds[i].selectedEvent],sounds[i].delegateWrapper.eventHolder.
-                    GetComponents(typeof(Component))[sounds[i].selectedComponent],() => Debug.Log("Please kill me now thanks"));
-                
+                sounds[i].eventHolderList.Add(new AudioManager.EventHolder());
+                return;
             }
         }
 
+        for (int l = 0; l < sounds[i].eventHolderList.Count; l++)
+        {
+            AudioManager.EventHolder holder = sounds[i].eventHolderList[l];
+            using (new GUILayout.HorizontalScope())
+            {
+                using (new GUILayout.VerticalScope())
+                {
+                    using (new GUILayout.HorizontalScope("HelpBox"))
+                    {
+                        // DrawSoundPropertyAt(propsounds, "eventHolders[l]", i);
+                        EditorGUILayout.PropertyField(propsounds.GetArrayElementAtIndex(i)
+                            .FindPropertyRelative("eventHolderList").GetArrayElementAtIndex(l).FindPropertyRelative("eventer"),GUIContent.none);
+                        int j = holder.selectedComponent;
+                        if (holder.eventer)
+                        {
+                            GUILayout.Label("Component: ", fieldColor);
+                            sounds[i].eventHolderList[l].selectedComponent = EditorGUILayout.Popup(holder.selectedComponent,
+                                GetNamesFromComponents(holder.eventer
+                                    .GetComponents(typeof(Component))));
+                            if (j != holder.selectedComponent) EditorUtility.SetDirty(target);
+                        }
+                    }
 
-        //
-        // foreach (string name in eventNames)
-        // {
-        //     if(name == sounds[i].delegateWrapper.eventName) Debug.Log("match");
-        // }
+                    if (holder.eventer)
+                    {
 
-    }
-    
-    static void AddEventHandler(EventInfo eventInfo, object target,  Action action)
-    {
-        var parameters = eventInfo.EventHandlerType
-            .GetMethod("Invoke")
-            .GetParameters()
-            .Select(parameter => Expression.Parameter(parameter.ParameterType))
-            .ToArray();
+                        List<EventInfo> eventInfos = holder.eventer.GetComponents(typeof(Component))[holder.selectedComponent]
+                                .GetType().GetEvents().ToList();
+                        
+                        List<EventInfo> eventInfosTemp = new List<EventInfo>();
 
-        var handler = Expression.Lambda(
-                eventInfo.EventHandlerType, 
-                Expression.Call(Expression.Constant(action), "Invoke", Type.EmptyTypes), 
-                parameters
-            )
-            .Compile();
+                        for (int j = 0; j < eventInfos.Count; j++)
+                        {
+                            if (eventInfos[j].EventHandlerType.GetMethod("Invoke").GetParameters().Length == 0)
+                                eventInfosTemp.Add(eventInfos[j]);
+                        }
 
-        eventInfo.AddEventHandler(target, handler);
-    }
-    static void AddEventHandler(EventInfo eventInfo, object target, Action<object, EventArgs> action)
-    {
-        var parameters = eventInfo.EventHandlerType
-            .GetMethod("Invoke")
-            .GetParameters()
-            .Select(parameter => Expression.Parameter(parameter.ParameterType))
-            .ToArray();
+                        eventInfos = eventInfosTemp;
+                        
+                        // EventInfo selectedEvent = null;
+                        // if (eventInfos.Count != 0)
+                        // {
+                        //     selectedEvent = eventInfos[holder.selectedEvents];
+                        // }
+                        // else return;
 
-        var invoke = action.GetType().GetMethod("Invoke");
+                        if (eventInfos.Count > 0)
+                        {
+                            using (new GUILayout.HorizontalScope())
+                            {
+                                GUILayout.Label("Event: ", fieldColor, GUILayout.MaxWidth(50));
 
-        var handler = Expression.Lambda(
-                eventInfo.EventHandlerType,
-                Expression.Call(Expression.Constant(action), invoke, parameters[0], parameters[1]),
-                parameters
-            )
-            .Compile();
+                                int k = holder.selectedEvents;
+                                // holder.selectedEvents = EditorGUILayout.Popup(holder.selectedEvents, GetNamesFromEvents(eventInfos.ToArray()));
+                                holder.selectedEvents = EditorGUILayout.MaskField(holder.selectedEvents,
+                                    GetNamesFromEvents(eventInfos.ToArray()));
+                                if (k != holder.selectedEvents) EditorUtility.SetDirty(target);
+                                GUILayout.Label(System.Convert.ToString(holder.selectedEvents,2));
 
-        eventInfo.AddEventHandler(target, handler);
+                                
+                                
+                                
+                                // GUILayout.Toggle(holder._mask[0],GUIContent.none);
+                                // GUILayout.Toggle(holder._mask[1],GUIContent.none);
+                                // GUILayout.Toggle(holder._mask[2],GUIContent.none);
+                                // GUILayout.Toggle(holder._mask[3],GUIContent.none);
+                                // GUILayout.Toggle(holder._mask[4],GUIContent.none);
+                                // GUILayout.Toggle(holder._mask[5],GUIContent.none);
+                                // GUILayout.Toggle(holder._mask[6],GUIContent.none);
+
+                                // bool isSubscribed = false;
+                                // for (int j = 0; j < holder.eventInfoNames.Count; j++)
+                                // {
+                                //     if (selectedEvent.Name == holder.eventInfoNames[j]) isSubscribed = true;
+                                // }
+
+                                // if (isSubscribed)
+                                // {
+                                //     if (GUILayout.Button("Unsubscribe", buttonNameToggle))
+                                //     {
+                                //         holder.eventInfoNames.Remove(selectedEvent.Name);
+                                //         EditorUtility.SetDirty(target);
+                                //     }
+                                // }
+                                // else if (GUILayout.Button("Subscribe", buttonNameToggle))
+                                // {
+                                //     holder.eventInfoNames.Add(selectedEvent.Name);
+                                //     EditorUtility.SetDirty(target);
+                                // }
+                            }
+                        }
+                        else
+                        {
+                            GUILayout.Label("No usable events available in that component!", fieldColor);
+
+                        }
+                    }
+                    
+                    List<string> temp = holder.eventInfoNames;
+                    for (int j = 0; j < temp.Count; j++)
+                    {
+                        GUILayout.Label(temp[j]);
+                    }
+
+                }
+                if(holder.eventer)
+                    if (GUILayout.Button(" - ", buttonNameToggleBig))
+                    { 
+                        sounds[i].eventHolderList.Remove(holder);
+                    }
+
+            }
+        }
     }
 
     private string[] GetNamesFromComponents(Component[] components)
@@ -588,15 +644,17 @@ public class AudioManagerEditor : Editor
     
     private string[] GetNamesFromEvents(EventInfo[] events)
     {
-        string[] names = new string[events.Length];
+        List<string> names = new List<string>();
 
-        for (int i = 0; i < names.Length; i++)
+        for (int i = 0; i < events.Length; i++)
         {
-            names[i] = events[i].Name;
-            // Debug.Log(events[i]);
+            if (events[i].EventHandlerType.GetMethod("Invoke").GetParameters().Length == 0)
+            {
+                names.Add(events[i].Name);
+            }
         }
 
-        return names;
+        return names.ToArray();
     }
     
     

@@ -475,7 +475,6 @@ MonoBehaviour:
   mixers:
   - {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
   - {fileID: -3521167275573346520, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
-  - {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
   sounds:
   - previewColor: {r: 0.5, g: 1, b: 0.5, a: 1}
     selectedMixer: 0
@@ -489,7 +488,7 @@ MonoBehaviour:
     paused: 0
     isPlaying: 0
     soundName: s1
-    clip: {fileID: 8300000, guid: 40d0fb65c83046748a3aacb8cbde687f, type: 3}
+    clip: {fileID: 0}
     mixer: {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
     loop: 0
     priority: 128
@@ -498,29 +497,60 @@ MonoBehaviour:
     volumeRange: {x: 0, y: 0}
     priorityRange: {x: 0, y: 0}
     pitchRange: {x: 0, y: 0}
-    unityEventsVisible: 1
+    unityEventsVisible: 0
     e:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 484645489}
+        - m_Target: {fileID: 0}
           m_MethodName: 
           m_Mode: 1
           m_Arguments:
             m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: 
+            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
             m_IntArgument: 0
             m_FloatArgument: 0
             m_StringArgument: 
             m_BoolArgument: 0
           m_CallState: 2
     spatialBlend: 0
-    soundPreviewer: {fileID: 37883247734227524}
-    delegateWrapper:
-      eventHolder: {fileID: 484645489}
-      eventName: testEvent
+    soundPreviewer: {fileID: 484645491}
     settings:
-      minDistance: 0
-      maxDistance: 0
+      minDistance: 160
+      maxDistance: 568.83386
     eventTypeSelected: 1
-    selectedComponent: 1
-    selectedEvent: 1
+    eventHolderList: []
+  - previewColor: {r: 0.5, g: 1, b: 0.5, a: 1}
+    selectedMixer: 0
+    isVeryImportant: 0
+    volumeIsRange: 0
+    priorityIsRange: 0
+    pitchIsRange: 0
+    soundVisibleInInspector: 1
+    soundVisibleInScene: 1
+    soundTesting: 0
+    paused: 0
+    isPlaying: 0
+    soundName: s2
+    clip: {fileID: 8300000, guid: 40d0fb65c83046748a3aacb8cbde687f, type: 3}
+    mixer: {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
+    loop: 0
+    priority: 128
+    volume: 0.554
+    pitch: 1.504
+    volumeRange: {x: 0, y: 0}
+    priorityRange: {x: 0, y: 0}
+    pitchRange: {x: 0, y: 0}
+    unityEventsVisible: 1
+    e:
+      m_PersistentCalls:
+        m_Calls: []
+    spatialBlend: 1
+    soundPreviewer: {fileID: 37883247734227524}
+    settings:
+      minDistance: 141
+      maxDistance: 196
+    eventTypeSelected: 1
+    eventHolderList:
+    - eventer: {fileID: 484645489}
+      selectedComponent: 1
+      selectedEvents: 85
