@@ -120,6 +120,8 @@ public class AudioManager : MonoBehaviour
 	public static void Play(string soundName)
 	{
 		AudioSource source = i.gameObject.AddComponent<AudioSource>();
+		source.hideFlags = HideFlags.HideInInspector;
+
 		sources.Add(new PlayingAudioSourceData(soundName, source, false));
 		Sound sound = FindSoundFromName(soundName);
 
@@ -142,7 +144,7 @@ public class AudioManager : MonoBehaviour
 	{
 
 		AudioSource source = new GameObject(soundName).AddComponent<AudioSource>();
-		// source.gameObject.hideFlags = HideFlags.HideAndDontSave;
+		source.gameObject.hideFlags = HideFlags.HideAndDontSave;
 		source.transform.SetParent(parent);
 		sources.Add(new PlayingAudioSourceData(soundName, source, false));
 		source.transform.position = position;
@@ -203,13 +205,31 @@ public class AudioManager : MonoBehaviour
 			set => _mask = _mask;
 			get
 			{
-				bool[] temp = new bool[_selectedEventsBin.ToCharArray().Length];
 				
-				for (int j = 0; j < temp.Length; j++)
-				{
-					temp[j] = _selectedEventsBin.ToCharArray()[temp.Length - j-1] == '1';
-				}
-				return temp;
+						
+					bool[] temp;
+					if (selectedEvents != -1)
+					{
+						temp = new bool[_selectedEventsBin.ToCharArray().Length];
+					}
+					else
+					{
+						temp = new bool[usableEvents.Length];
+					}
+
+					for (int j = 0; j < temp.Length; j++)
+					{
+						if (selectedEvents != -1)
+						{
+							temp[j] = _selectedEventsBin.ToCharArray()[temp.Length - j - 1] == '1';
+						}
+						else
+						{
+							temp[j] = true;
+						}
+					}
+
+					return temp;
 			}
 	}
 		
@@ -261,13 +281,9 @@ public class AudioManager : MonoBehaviour
 		public UnityEvent e;
 		public bool spatialBlend;
 		public Transform soundPreviewer;
-		
+		public int selectedTab;
 		public DimensionalSoundSettings settings = new DimensionalSoundSettings();
 		public int eventTypeSelected;
-		// public int selectedComponent;
-		// public int selectedEvents;
-		// public List<string> eventInfoNames;
-		// public List<GameObject> eventHolders;
 		public List<EventHolder> eventHolderList;
 
 
