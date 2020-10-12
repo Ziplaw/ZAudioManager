@@ -8,6 +8,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using NUnit.Framework.Constraints;
+using UnityEditor.EditorTools;
 using UnityEditor.Graphs;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
@@ -65,16 +66,22 @@ public class AudioManagerEditor : Editor
         buttonNameToggle.active.textColor = Color.cyan;
         buttonNameToggle.hover.textColor = Color.cyan;
         buttonNameToggle.font = (Font) Resources.Load("Fonts/Retron2000");
+        buttonNameToggle.onNormal.textColor = Color.cyan;
+
 
         buttonNameToggleBig = new GUIStyle(buttonNameToggle);
         buttonNameToggleBig.fontSize = 30;
 
-        toolbarButton = new GUIStyle(EditorStyles.miniButtonMid);
+        toolbarButton = new GUIStyle(EditorStyles.objectFieldThumb);
         toolbarButton.normal.textColor = new Color(1, .7f, 0);
         toolbarButton.active.textColor = Color.cyan;
         toolbarButton.font = (Font) Resources.Load("Fonts/Retron2000");
-        toolbarButton.fontSize = 20;
-        toolbarButton.fixedHeight = 30;
+        toolbarButton.fontSize = 15;
+        toolbarButton.fixedHeight = 25;
+        toolbarButton.alignment = TextAnchor.MiddleCenter;
+        toolbarButton.onNormal.textColor = Color.cyan;
+        toolbarButton.clipping = TextClipping.Clip;
+
 
         mainToolbarButton = new GUIStyle(toolbarButton);
 
@@ -105,12 +112,13 @@ public class AudioManagerEditor : Editor
         moveButtonStyle.normal.textColor = new Color(.5f, .5f, 1);
         moveButtonStyle.font = (Font) Resources.Load("Fonts/Retron2000");
 
-        hoverableButton = new GUIStyle(EditorStyles.toolbarButton);
+        hoverableButton = new GUIStyle(toolbarButton);
         hoverableButton.normal.textColor = fieldColor.normal.textColor;
         hoverableButton.hover.textColor = new Color(0, 1, .7f);
         hoverableButton.focused.textColor = new Color(0, 1, .9f);
         hoverableButton.active.textColor = new Color(0, 1, .9f);
         hoverableButton.font = (Font) Resources.Load("Fonts/Retron2000");
+        hoverableButton.fixedHeight = 20;
 
         nullHoverableButton = new GUIStyle(EditorStyles.toolbarButton);
         nullHoverableButton.normal.textColor = Color.red;
@@ -275,14 +283,11 @@ public class AudioManagerEditor : Editor
         {
             if (manager.mixers.Count > 0)
             {
-                // GUILayout.Label("Mixers:", fieldColor, GUILayout.Height(30), GUILayout.MaxWidth(50));
-
-
                 List<string> mixerNames = new List<string>();
                 foreach (AudioMixerGroup m in manager.mixers)
                 {
                     if (m)
-                        mixerNames.Add(m.name);
+                        mixerNames.Add(m.name + " (" + m.audioMixer.name + ")");
                     else
                         mixerNames.Add("");
                 }
@@ -298,10 +303,10 @@ public class AudioManagerEditor : Editor
 
                 using (new EditorGUI.DisabledGroupScope(anyDisabled))
                 {
-                    var psm = sounds[i].selectedMixer;
-
+                    int psm = sounds[i].selectedMixer;
+                    
                     sounds[i].selectedMixer = GUILayout.Toolbar(sounds[i].selectedMixer, names,
-                        toolbarButton /*,GUILayout.MaxHeight(50)*/);
+                        toolbarButton,GUILayout.MinWidth(0));
                     sounds[i].mixer = manager.mixers[sounds[i].selectedMixer];
 
                     if (psm != sounds[i].selectedMixer)
@@ -314,34 +319,23 @@ public class AudioManagerEditor : Editor
             {
                 GUILayout.Label("No mixers available.", fieldColor, GUILayout.Height(30));
             }
-        }
-    }
+            GUILayout.Space(10);
+            DrawBoolLabel(ref sounds[i].mixersVisibleInInspector,"...",toolbarButton,new GUILayoutOption[] {GUILayout.Width(30)});
 
-    void DrawEventsTab(int i)
-    {
-        sounds[i].eventTypeSelected = GUILayout.Toolbar(sounds[i].eventTypeSelected,
-            new string[] {"Cause", "Effect"}, toolbarButton);
-        switch (sounds[i].eventTypeSelected)
+        }
+
+        
+
+        if (sounds[i].mixersVisibleInInspector)
         {
-            case 0:
-                DrawSoundPropertyAt(propsounds, "e", i);
-                break;
-            case 1:
-                DrawDelegateFinder(i);
-                break;
+            DrawMixerManager();
         }
+        
     }
 
-
-    public override void OnInspectorGUI()
+    private void DrawMixerManager()
     {
-        // base.DrawDefaultInspector();
-        // return;
-        SetupAudioManagerStyles();
-        // EditorGUILayout.PropertyField(propMixers);
-
-
-        using (new EditorGUILayout.VerticalScope("HelpBox"))
+        using (new EditorGUILayout.VerticalScope())
         {
             using (new EditorGUILayout.HorizontalScope("HelpBox"))
             {
@@ -372,29 +366,57 @@ public class AudioManagerEditor : Editor
                 }
             }
         }
+    }
 
-        GUILayout.Space(25);
-
-
-        using (new EditorGUILayout.HorizontalScope("HelpBox"))
+    void DrawEventsTab(int i)
+    {
+        sounds[i].eventTypeSelected = GUILayout.Toolbar(sounds[i].eventTypeSelected,
+            new string[] {"Cause", "Effect"}, toolbarButton);
+        switch (sounds[i].eventTypeSelected)
         {
-            if (GUILayout.Button("Add Sound", hoverableButton))
-            {
-                AddSound();
-            }
-
-            if (GUILayout.Button("V", moveButtonStyle, GUILayout.MaxWidth(30)))
-            {
-                ToggleAllButtons();
-            }
+            case 0:
+                DrawSoundPropertyAt(propsounds, "e", i);
+                break;
+            case 1:
+                DrawDelegateFinder(i);
+                break;
         }
+    }
+
+
+    public override void OnInspectorGUI()
+    {
+        // base.DrawDefaultInspector();
+        // return;
+        SetupAudioManagerStyles();
+
+        bool anyOpen = false;
+        foreach (var sound in sounds)
+        {
+            if (sound.soundVisibleInInspector) anyOpen = true;
+        }
+        
+        if(!anyOpen)
+            using (new EditorGUILayout.HorizontalScope("HelpBox"))
+            {
+                if (GUILayout.Button("Add Sound", hoverableButton))
+                {
+                    AddSound();
+                }
+
+                if (GUILayout.Button("V", moveButtonStyle, GUILayout.MaxWidth(30)))
+                {
+                    ToggleAllButtons();
+                }
+            }
 
 
         for (int i = 0; i < propsounds.arraySize; i++)
-        {
+        {    
+            if(!anyOpen || sounds[i].soundVisibleInInspector) 
             using (new EditorGUILayout.VerticalScope("HelpBox"))
             {
-                using (new EditorGUILayout.HorizontalScope("HelpBox"))
+                using (new EditorGUILayout.HorizontalScope())
                 {
                     bool prevVisibilityState = sounds[i].soundVisibleInInspector;
 
@@ -481,7 +503,7 @@ public class AudioManagerEditor : Editor
                                 sounds[i].soundTesting = GUILayout.Toggle(sounds[i].soundTesting, "■",
                                     EditorStyles.miniButton, GUILayout.MaxWidth(50));
                             }
-                            
+
                             if (sounds[i].soundTesting)
                             {
                                 if (previewers[i] == null)
@@ -508,33 +530,22 @@ public class AudioManagerEditor : Editor
                         sounds[i].selectedTab = GUILayout.Toolbar(sounds[i].selectedTab,
                             new[] {"Parameters", "Spatial Blend", "Mixer", "Events"}, mainToolbarButton);
 
-                        // using (new GUILayout.scop("HelpBox"))
+                        switch (sounds[i].selectedTab)
                         {
-                            switch (sounds[i].selectedTab)
-                            {
-                                case 0:
-                                    DrawParameterTab(i);
-                                    break;
-                                case 1:
-                                    DrawSpatialBlendTab(i);
-                                    break;
-                                case 2:
-                                    DrawMixersTab(i);
-                                    break;
-                                case 3:
-                                    DrawEventsTab(i);
-                                    break;
-                            }
+                            case 0:
+                                DrawParameterTab(i);
+                                break;
+                            case 1:
+                                DrawSpatialBlendTab(i);
+                                break;
+                            case 2:
+                                DrawMixersTab(i);
+                                break;
+                            case 3:
+                                DrawEventsTab(i);
+                                break;
                         }
                     }
-
-
-                    // DrawBoolLabel(ref sounds[i].unityEventsVisible, "Events", buttonNameToggle,
-                    //     new GUILayoutOption[] {GUILayout.MinWidth(100), GUILayout.MinHeight(15)});
-                    // if (sounds[i].unityEventsVisible)
-                    // {
-                    //     
-                    // }
                 }
             }
 
@@ -595,13 +606,6 @@ public class AudioManagerEditor : Editor
 
                         eventInfos = eventInfosTemp;
 
-                        // EventInfo selectedEvent = null;
-                        // if (eventInfos.Count != 0)
-                        // {
-                        //     selectedEvent = eventInfos[holder.selectedEvents];
-                        // }
-                        // else return;
-
                         if (eventInfos.Count > 0)
                         {
                             using (new GUILayout.HorizontalScope())
@@ -609,41 +613,9 @@ public class AudioManagerEditor : Editor
                                 GUILayout.Label("Event: ", fieldColor, GUILayout.MaxWidth(50));
 
                                 int k = holder.selectedEvents;
-                                // holder.selectedEvents = EditorGUILayout.Popup(holder.selectedEvents, GetNamesFromEvents(eventInfos.ToArray()));
                                 holder.selectedEvents = EditorGUILayout.MaskField(holder.selectedEvents,
                                     GetNamesFromEvents(eventInfos.ToArray()));
                                 if (k != holder.selectedEvents) EditorUtility.SetDirty(target);
-                                // GUILayout.Label(holder.selectedEvents.ToString());
-                                // GUILayout.Label(System.Convert.ToString(holder.selectedEvents, 2));
-
-
-                                // GUILayout.Toggle(holder._mask[0],GUIContent.none);
-                                // GUILayout.Toggle(holder._mask[1],GUIContent.none);
-                                // GUILayout.Toggle(holder._mask[2],GUIContent.none);
-                                // GUILayout.Toggle(holder._mask[3],GUIContent.none);
-                                // GUILayout.Toggle(holder._mask[4],GUIContent.none);
-                                // GUILayout.Toggle(holder._mask[5],GUIContent.none);
-                                // GUILayout.Toggle(holder._mask[6],GUIContent.none);
-
-                                // bool isSubscribed = false;
-                                // for (int j = 0; j < holder.eventInfoNames.Count; j++)
-                                // {
-                                //     if (selectedEvent.Name == holder.eventInfoNames[j]) isSubscribed = true;
-                                // }
-
-                                // if (isSubscribed)
-                                // {
-                                //     if (GUILayout.Button("Unsubscribe", buttonNameToggle))
-                                //     {
-                                //         holder.eventInfoNames.Remove(selectedEvent.Name);
-                                //         EditorUtility.SetDirty(target);
-                                //     }
-                                // }
-                                // else if (GUILayout.Button("Subscribe", buttonNameToggle))
-                                // {
-                                //     holder.eventInfoNames.Add(selectedEvent.Name);
-                                //     EditorUtility.SetDirty(target);
-                                // }
                             }
                         }
                         else
@@ -651,12 +623,6 @@ public class AudioManagerEditor : Editor
                             GUILayout.Label("No usable events available in that component!", fieldColor);
                         }
                     }
-
-                    // List<string> temp = holder.eventInfoNames;
-                    // for (int j = 0; j < temp.Count; j++)
-                    // {
-                    //     GUILayout.Label(temp[j]);
-                    // }
                 }
 
                 if (holder.eventer)

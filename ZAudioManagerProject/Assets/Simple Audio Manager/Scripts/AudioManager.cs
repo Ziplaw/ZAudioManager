@@ -263,6 +263,7 @@ public class AudioManager : MonoBehaviour
 		public bool priorityIsRange;
 		public bool pitchIsRange;
 		public bool soundVisibleInInspector;
+		public bool mixersVisibleInInspector;
 		public bool soundVisibleInScene;
 		public bool soundTesting;
 		public bool paused;
