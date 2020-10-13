@@ -7,14 +7,14 @@ using UnityEngine.Audio;
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 using NUnit.Framework.Constraints;
 using UnityEditor.EditorTools;
 using UnityEditor.Graphs;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
 
-[ExecuteInEditMode]
-[CustomEditor(typeof(AudioManager)), CanEditMultipleObjects]
+[CustomEditor(typeof(AudioManager))]
 public class AudioManagerEditor : Editor
 {
     
@@ -74,13 +74,13 @@ public class AudioManagerEditor : Editor
         buttonNameToggleBig.fontSize = 30;
 
         toolbarButton = new GUIStyle(EditorStyles.objectFieldThumb);
-        toolbarButton.normal.textColor = new Color(1, .7f, 0);
-        toolbarButton.active.textColor = Color.cyan;
+        toolbarButton.normal.textColor = new Color(1f, .7f, 0);
+        toolbarButton.active.textColor = new Color(0, 1f, .5f);
         toolbarButton.font = (Font) Resources.Load("Fonts/Retron2000");
-        toolbarButton.fontSize = 15;
-        toolbarButton.fixedHeight = 25;
+        toolbarButton.fontSize = 10;
+        toolbarButton.fixedHeight = 20;
         toolbarButton.alignment = TextAnchor.MiddleCenter;
-        toolbarButton.onNormal.textColor = Color.cyan;
+        toolbarButton.onNormal.textColor =new Color(0, 1, .5f);
         toolbarButton.clipping = TextClipping.Clip;
 
 
@@ -88,6 +88,12 @@ public class AudioManagerEditor : Editor
 
         mainToolbarButton.fontSize = 15;
         mainToolbarButton.fixedHeight = 25;
+        mainToolbarButton.normal.textColor = new Color(1f, .7f, 0);
+        mainToolbarButton.active.textColor = Color.cyan;
+        mainToolbarButton.onNormal.textColor = Color.cyan;
+
+
+
 
 
         fieldColor = new GUIStyle(GUI.skin.label);
@@ -113,7 +119,7 @@ public class AudioManagerEditor : Editor
         moveButtonStyle.normal.textColor = new Color(.5f, .5f, 1);
         moveButtonStyle.font = (Font) Resources.Load("Fonts/Retron2000");
 
-        hoverableButton = new GUIStyle(toolbarButton);
+        hoverableButton = new GUIStyle(EditorStyles.miniButton);
         hoverableButton.normal.textColor = fieldColor.normal.textColor;
         hoverableButton.hover.textColor = new Color(0, 1, .7f);
         hoverableButton.focused.textColor = new Color(0, 1, .9f);
@@ -260,8 +266,10 @@ public class AudioManagerEditor : Editor
 
     void DrawSpatialBlendTab(int i)
     {
+        var t = sounds[i].spatialBlend;
         DrawBoolLabel(ref sounds[i].spatialBlend, "Use 3D Sound", buttonNameToggle,
             new GUILayoutOption[] {GUILayout.MinWidth(50), GUILayout.MinHeight(25)});
+        if(t != sounds[i].spatialBlend) sounds[i].eventHolderList = new List<AudioManager.EventHolder>();
         // DrawSoundPropertyAt(propsounds, "loop", "Loop", fieldColor, i);
         // DrawSoundPropertyAt(propsounds, "spatialBlend", "3D Sound", fieldColor, i);
         if (sounds[i].spatialBlend)
@@ -345,7 +353,7 @@ public class AudioManagerEditor : Editor
                     AddMixer();
                 }
 
-                if (GUILayout.Button("Mixers...", hoverableButton, GUILayout.MaxWidth(60)))
+                if (GUILayout.Button("Mixers...", hoverableButton, GUILayout.MaxWidth(70)))
                 {
                     System.Type windowType =
                         typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.AudioMixerWindow");
@@ -391,6 +399,8 @@ public class AudioManagerEditor : Editor
         // return;
         SetupAudioManagerStyles();
 
+        
+
         bool anyOpen = false;
         foreach (var sound in sounds)
         {
@@ -413,7 +423,7 @@ public class AudioManagerEditor : Editor
 
 
         for (int i = 0; i < propsounds.arraySize; i++)
-        {    
+        {
             if(!anyOpen || sounds[i].soundVisibleInInspector) 
             using (new EditorGUILayout.VerticalScope("HelpBox"))
             {
@@ -561,7 +571,8 @@ public class AudioManagerEditor : Editor
         {
             if (GUILayout.Button(" + ", buttonNameToggle))
             {
-                sounds[i].eventHolderList.Add(new AudioManager.EventHolder());
+                sounds[i].eventHolderList.Add(new AudioManager.EventHolder(sounds[i].spatialBlend));
+                Debug.Log(sounds[i].spatialBlend);
                 return;
             }
         }
@@ -598,11 +609,46 @@ public class AudioManagerEditor : Editor
                                 .GetType().GetEvents().ToList();
 
                         List<EventInfo> eventInfosTemp = new List<EventInfo>();
+                        List<string> usableEvents = new List<string>();
 
                         for (int j = 0; j < eventInfos.Count; j++)
                         {
-                            if (eventInfos[j].EventHandlerType.GetMethod("Invoke").GetParameters().Length == 0)
+                            // Debug.Log(typeof(AudioManager.Sound).GetMethod("PlaySoundSubscribe").GetParameters() == eventInfos[j].EventHandlerType.GetMethod("Invoke").GetParameters());
+                            // Debug.Log(eventInfos[j].EventHandlerType.GetMethod("Invoke").GetParameters().Length);
+
+                            MethodInfo subscriberMethod = null;
+                            
+                            switch (sounds[i].spatialBlend)
+                            {
+                                case true:
+                                    subscriberMethod = typeof(AudioManager.Sound).GetMethod("PlaySoundSubscribe",
+                                        new Type[] {typeof(object), typeof(Transform), typeof(Vector3)});
+                                    break;
+                                case false:
+                                    subscriberMethod = typeof(AudioManager.Sound).GetMethod("PlaySoundSubscribe",
+                                        new Type[] {typeof(object)});
+                                    break;
+                            }
+                            
+                            // Debug.Log(subscriberMethod);
+                            
+
+                            var parameterTypeNames =
+                                from p in subscriberMethod.GetParameters()
+                                select p.ParameterType.FullName;
+                            
+                            var eventTypeNames =
+                                from p in eventInfos[j].EventHandlerType.GetMethod("Invoke").GetParameters()
+                                select p.ParameterType.FullName;
+
+                            var parameterTypeArray = parameterTypeNames.ToArray();
+                            var eventTypeArray = eventTypeNames.ToArray();
+
+                            if (EqualsList(parameterTypeArray.ToList(),eventTypeArray.ToList()))
+                            {
                                 eventInfosTemp.Add(eventInfos[j]);
+                                usableEvents.Add(eventInfos[j].Name);
+                            }
                         }
 
                         eventInfos = eventInfosTemp;
@@ -614,8 +660,8 @@ public class AudioManagerEditor : Editor
                                 GUILayout.Label("Event: ", fieldColor, GUILayout.MaxWidth(50));
 
                                 int k = holder.selectedEvents;
-                                holder.selectedEvents = EditorGUILayout.MaskField(holder.selectedEvents,
-                                    GetNamesFromEvents(eventInfos.ToArray()));
+                                // holder.selectedEvents = EditorGUILayout.MaskField(holder.selectedEvents, GetNamesFromEvents(eventInfos.ToArray()));
+                                holder.selectedEvents = EditorGUILayout.MaskField(holder.selectedEvents, usableEvents.ToArray());
                                 if (k != holder.selectedEvents) EditorUtility.SetDirty(target);
                             }
                         }
@@ -634,6 +680,28 @@ public class AudioManagerEditor : Editor
             }
         }
     }
+    
+    public static bool EqualsList<T>(List<T> a, List<T> b) {
+        if (a == null)
+        {
+            // Debug.Log("a == null");
+            return b == null;
+        }
+        if (b == null || a.Count != b.Count)
+        {
+            // Debug.Log("not the same number of items");
+            return false;
+        }
+        for (int i = 0; i < a.Count; i++) {
+            if (!object.Equals(a[i], b[i])) {
+                // Debug.Log("objects in position " + i +  " are different");
+
+                return false;
+            }
+        }
+        return true;
+    }
+    
 
     private string[] GetNamesFromComponents(Component[] components)
     {

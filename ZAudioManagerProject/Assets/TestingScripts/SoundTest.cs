@@ -7,19 +7,34 @@ public class SoundTest : MonoBehaviour
 {
 	public string soundName;
 	// Start is called before the first frame update
-	void Start()
+	IEnumerator Start()
 	{
 		// AudioManager.Play(soundName, transform.position, transform);
 		testEvent?.Invoke(1);
-		testEvent2?.Invoke();
-		testEvent3?.Invoke();
-		testEvent4?.Invoke();
-		testEvent5?.Invoke();
+		testEvent2?.Invoke(this, null, new Vector3());
+		testEvent3?.Invoke(this, new Vector3(), null);
+		testEvent4?.Invoke(this);
+		yield return new WaitForSeconds(1);
+		testEvent5?.Invoke(this);
 		testEvent6?.Invoke();
 		testEvent7?.Invoke();
 		testEvent8?.Invoke();
 
 		// Debug.Log(testEvent.GetInvocationList());
+		
+		yield return new WaitForSeconds(1);
+		
+		var a = AudioManager.GetAudioSource(this,"s1");
+		// a[0].transform.position += Vector3.one * 50;
+
+	}
+
+	private void Update()
+	{
+		if(Input.GetMouseButtonDown(0)) testEvent4?.Invoke(this);
+
+		
+		// AudioManager.Play(this,"s1");
 	}
 
 	public void TestMethod() => Debug.Log("Test Method Played!");
@@ -27,10 +42,10 @@ public class SoundTest : MonoBehaviour
 	
 	
 	public event Action<int>  testEvent;
-	public event Action  testEvent2;
-	public event Action  testEvent3;
-	public event Action  testEvent4;
-	public event Action  testEvent5;
+	public event Action<object, Transform, Vector3>  testEvent2;
+	public event Action<object,Vector3,Transform>  testEvent3;
+	public event Action<object>  testEvent4;
+	public event Action<object>  testEvent5;
 	public event Action  testEvent6;
 	public event Action  testEvent7;
 	public event Action  testEvent8;

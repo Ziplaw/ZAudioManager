@@ -340,94 +340,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1554795980
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1554795982}
-  - component: {fileID: 1554795981}
-  m_Layer: 0
-  m_Name: SoundTest (2)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1554795981
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1554795980}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcc65a815380cab4c9edf8650568f956, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  soundName: s3
---- !u!4 &1554795982
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1554795980}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 636, y: -76, z: 305}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1724244826
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1724244828}
-  - component: {fileID: 1724244827}
-  m_Layer: 0
-  m_Name: SoundTest (1)
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1724244827
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1724244826}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcc65a815380cab4c9edf8650568f956, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  soundName: s2
---- !u!4 &1724244828
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1724244826}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -89, y: -200, z: 295}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_RootOrder: 4
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &37883247734227524
 Transform:
   m_ObjectHideFlags: 2
@@ -483,95 +395,13 @@ MonoBehaviour:
     volumeIsRange: 0
     priorityIsRange: 0
     pitchIsRange: 0
-    soundVisibleInInspector: 0
-    mixersVisibleInInspector: 0
-    soundVisibleInScene: 1
-    soundTesting: 0
-    paused: 0
-    isPlaying: 0
-    soundName: s1
-    clip: {fileID: 8300000, guid: 40d0fb65c83046748a3aacb8cbde687f, type: 3}
-    mixer: {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
-    loop: 0
-    priority: 128
-    volume: 0.35
-    pitch: 1
-    volumeRange: {x: 0, y: 0}
-    priorityRange: {x: 0, y: 0}
-    pitchRange: {x: 0, y: 0}
-    unityEventsVisible: 0
-    e:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 0}
-          m_MethodName: 
-          m_Mode: 1
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
-    spatialBlend: 0
-    soundPreviewer: {fileID: 484645491}
-    selectedTab: 0
-    settings:
-      minDistance: 160
-      maxDistance: 568.83386
-    eventTypeSelected: 1
-    eventHolderList: []
-  - previewColor: {r: 1, g: 0.1857836, b: 0, a: 1}
-    selectedMixer: 0
-    isVeryImportant: 0
-    volumeIsRange: 0
-    priorityIsRange: 0
-    pitchIsRange: 0
-    soundVisibleInInspector: 0
-    mixersVisibleInInspector: 0
-    soundVisibleInScene: 1
-    soundTesting: 0
-    paused: 0
-    isPlaying: 0
-    soundName: s2
-    clip: {fileID: 8300000, guid: 40d0fb65c83046748a3aacb8cbde687f, type: 3}
-    mixer: {fileID: 24300002, guid: cbf38bd6d4b12eb429c0b1e3cde14410, type: 2}
-    loop: 0
-    priority: 221
-    volume: 0.934
-    pitch: 1.939
-    volumeRange: {x: 0, y: 0}
-    priorityRange: {x: 0, y: 0}
-    pitchRange: {x: 0, y: 0}
-    unityEventsVisible: 1
-    e:
-      m_PersistentCalls:
-        m_Calls: []
-    spatialBlend: 1
-    soundPreviewer: {fileID: 1554795982}
-    selectedTab: 0
-    settings:
-      minDistance: 98
-      maxDistance: 229.45604
-    eventTypeSelected: 1
-    eventHolderList:
-    - eventer: {fileID: 484645489}
-      selectedComponent: 1
-      selectedEvents: 85
-  - previewColor: {r: 0.5, g: 1, b: 0.5, a: 1}
-    selectedMixer: 0
-    isVeryImportant: 0
-    volumeIsRange: 0
-    priorityIsRange: 0
-    pitchIsRange: 0
     soundVisibleInInspector: 1
     mixersVisibleInInspector: 0
     soundVisibleInScene: 1
     soundTesting: 0
     paused: 0
     isPlaying: 0
-    soundName: s3
+    soundName: s1
     clip: {fileID: 8300000, guid: 40d0fb65c83046748a3aacb8cbde687f, type: 3}
     mixer: {fileID: 0}
     loop: 0
@@ -587,9 +417,13 @@ MonoBehaviour:
         m_Calls: []
     spatialBlend: 0
     soundPreviewer: {fileID: 37883247734227524}
-    selectedTab: 0
+    selectedTab: 3
     settings:
       minDistance: 0
       maxDistance: 0
-    eventTypeSelected: 0
-    eventHolderList: []
+    eventTypeSelected: 1
+    eventHolderList:
+    - eventer: {fileID: 484645489}
+      spatialBlend: 0
+      selectedComponent: 1
+      selectedEvents: -1
