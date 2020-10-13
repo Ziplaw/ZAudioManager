@@ -17,6 +17,7 @@ using UnityEngine.UIElements;
 [CustomEditor(typeof(AudioManager)), CanEditMultipleObjects]
 public class AudioManagerEditor : Editor
 {
+    
     GUIStyle removeButtonStyle,
         moveButtonStyle,
         buttonNameToggle,
