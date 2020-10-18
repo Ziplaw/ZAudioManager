@@ -1,0 +1,1 @@
+﻿Add a way to control the pitch and volume of a Sound with a Curve.
