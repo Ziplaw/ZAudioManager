@@ -379,6 +379,26 @@ public class AudioManager : MonoBehaviour
         public DimensionalSoundSettings settings = new DimensionalSoundSettings();
         public int eventTypeSelected;
         public List<EventHolder> eventHolderList;
+        public Texture2D wave;
+        [SerializeField] AudioSource _previewer;
+
+        public AudioSource Previewer
+        {
+            get
+            {
+                if (_previewer)
+                {
+                    return _previewer;
+                }
+                else
+                {
+                    var s = new GameObject("AudioPreviewer", new Type[] {typeof(AudioSource)});
+                    s.hideFlags = HideFlags.DontSave;
+                    _previewer = s.GetComponent<AudioSource>();
+                    return _previewer;
+                }
+            }
+        }
 
 
         public void SubscribeMethodToEvents()
