@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ZAudioManagerUtils
 {
-    public class EditorFunctions
+    public static class EditorFunctions
     {
         public static Texture2D PaintWaveformSpectrum(AudioClip audio, float saturation, int width,
             int height, Color col)

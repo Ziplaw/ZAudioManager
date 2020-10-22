@@ -134,7 +134,7 @@ public class AudioManager : MonoBehaviour
         return sources[index];
     }
 
-    public static void Play(object sender, string soundName)
+    public static AudioSource Play(object sender, string soundName)
     {
         AudioSource source = i.gameObject.AddComponent<AudioSource>();
         source.hideFlags = HideFlags.HideInInspector;
@@ -160,9 +160,10 @@ public class AudioManager : MonoBehaviour
 
         sound.e?.Invoke();
         source.Play();
+        return source;
     }
 
-    public static void Play(object sender, string soundName, Vector3 position, Transform parent)
+    public static AudioSource Play(object sender, string soundName, Vector3 position, Transform parent)
     {
         AudioSource source = new GameObject(soundName).AddComponent<AudioSource>();
         source.gameObject.hideFlags = HideFlags.HideAndDontSave;
@@ -191,6 +192,7 @@ public class AudioManager : MonoBehaviour
 
         sound.e?.Invoke();
         source.Play();
+        return source;
     }
 
     public static void TogglePause(string soundName)
@@ -358,16 +360,16 @@ public class AudioManager : MonoBehaviour
         public bool soundVisibleInInspector;
         public bool mixersVisibleInInspector;
         public bool soundVisibleInScene;
-        public bool soundTesting;
         public bool paused;
-        public bool isPlaying;
         public string soundName;
         public AudioClip clip;
         public AudioMixerGroup mixer;
         public bool loop;
         [Range(0, 256)] public int priority;
         [Range(0, 1)] public float volume;
-        [Range(0, 3)] public float pitch;
+
+        [Range(0.1f, 3)] public float pitch;
+
         public Vector2 volumeRange;
         public Vector2 priorityRange;
         public Vector2 pitchRange;
@@ -399,6 +401,10 @@ public class AudioManager : MonoBehaviour
                 }
             }
         }
+
+        
+
+        
 
 
         public void SubscribeMethodToEvents()

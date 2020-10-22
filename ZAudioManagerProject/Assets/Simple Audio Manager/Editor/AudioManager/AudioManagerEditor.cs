@@ -1,19 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Audio;
 using System;
-using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Emit;
-using NUnit.Framework.Constraints;
-using UnityEditor.EditorTools;
-using UnityEditor.Experimental.TerrainAPI;
-using UnityEditor.Graphs;
-using UnityEditor.UIElements;
-using UnityEngine.UIElements;
 using ZAudioManagerUtils;
 using Object = UnityEngine.Object;
 using Styles = ZAudioManagerUtils.Styles;
@@ -21,11 +12,70 @@ using Styles = ZAudioManagerUtils.Styles;
 [CustomEditor(typeof(AudioManager))]
 public class AudioManagerEditor : Editor
 {
-    
+    [Serializable]
+    public class Previewer
+    {
+        public AudioSource previewer;
+        private AudioManager.Sound _sound;
+        public float progress 
+        {
+            get
+            {
+                return previewer.time / (Sound.clip.length);
+            }
+        }
 
+        public AudioManager.Sound Sound
+        {
+            get => _sound;
+            set
+            {
+                _sound = value;
+                previewer.clip = _sound.clip;
+                SetupPreviewer();
+            } 
+        }
+
+        public void SetupPreviewer()
+        {
+            int spatialBlend = Sound.spatialBlend ? 1 : 0;
+
+            Sound.Previewer.clip = Sound.clip;
+            Sound.Previewer.outputAudioMixerGroup = Sound.mixer;
+            Sound.Previewer.loop = Sound.loop;
+            Sound.Previewer.volume = Sound.volumeIsRange
+                ? UnityEngine.Random.Range(Sound.volumeRange.x, Sound.volumeRange.y)
+                : Sound.volume;
+            Sound.Previewer.pitch = Sound.pitchIsRange
+                ? UnityEngine.Random.Range(Sound.pitchRange.x, Sound.pitchRange.y)
+                : Sound.pitch;
+            Sound.Previewer.priority = Sound.priorityIsRange
+                ? (int) UnityEngine.Random.Range(Sound.priorityRange.x, Sound.priorityRange.y)
+                : Sound.priority;
+            Sound.Previewer.minDistance = Sound.settings.minDistance;
+            Sound.Previewer.maxDistance = Sound.settings.maxDistance;
+        }
+
+        public void Play()
+        {
+            Sound.Previewer.Play();
+            Sound.e?.Invoke();
+        }
+
+        public Previewer(AudioSource previewer, AudioManager.Sound sound)
+        {
+            this.previewer = previewer;
+            this.Sound = sound;
+            SetupPreviewer();
+        }
+    }
+    
     static AudioManager manager;
     SerializedProperty propMixers;
     SerializedProperty propsounds;
+    public static Previewer currentPreviewer;
+
+    
 
 
     private List<AudioManager.Sound> sounds => manager.sounds;
@@ -46,9 +96,6 @@ public class AudioManagerEditor : Editor
                 manager.sounds[i].eventHolderList = new List<AudioManager.EventHolder>();
             }
         }
-
-
-        // SetupAudioManagerStyles();
     }
 
     private void SetMixerList()
@@ -72,7 +119,8 @@ public class AudioManagerEditor : Editor
                 EditorFunctions.DrawSoundPropertyAt(propsounds, "volume", i);
             else
                 EditorFunctions.DrawMinMaxSlider(ref sound.volumeRange.x, ref sound.volumeRange.y, 0, 1,
-                    propsounds, "volumeRange", i, new GUILayoutOption[] {},new GUILayoutOption[] {GUILayout.MaxWidth(200)});
+                    propsounds, "volumeRange", i, new GUILayoutOption[] { },
+                    new GUILayoutOption[] {GUILayout.MaxWidth(200)});
         }
 
         using (new GUILayout.HorizontalScope())
@@ -85,7 +133,7 @@ public class AudioManagerEditor : Editor
             else
                 EditorFunctions.DrawMinMaxSlider(ref sound.priorityRange.x, ref sound.priorityRange.y, 0,
                     256, propsounds, "priorityRange", i,
-                    new GUILayoutOption[] {},new GUILayoutOption[] {GUILayout.MaxWidth(200)});
+                    new GUILayoutOption[] { }, new GUILayoutOption[] {GUILayout.MaxWidth(200)});
         }
 
         using (new GUILayout.HorizontalScope())
@@ -97,7 +145,8 @@ public class AudioManagerEditor : Editor
                 EditorFunctions.DrawSoundPropertyAt(propsounds, "pitch", i);
             else
                 EditorFunctions.DrawMinMaxSlider(ref sound.pitchRange.x, ref sound.pitchRange.y, 0, 3,
-                    propsounds, "pitchRange", i,new GUILayoutOption[] {}, new GUILayoutOption[] {GUILayout.MaxWidth(200)});
+                    propsounds, "pitchRange", i, new GUILayoutOption[] { },
+                    new GUILayoutOption[] {GUILayout.MaxWidth(200)});
         }
 
         EditorFunctions.DrawBoolLabel(ref sound.loop, "Loop", Styles.buttonNameToggle,
@@ -118,15 +167,18 @@ public class AudioManagerEditor : Editor
             EditorFunctions.DrawSoundPropertyAt(propsounds, "settings.maxDistance", "Maximum Distance", Styles.max, i);
             using (new GUILayout.HorizontalScope())
             {
-                EditorFunctions.DrawSoundPropertyAt(propsounds, "soundPreviewer", "Sound Previewer", Styles.fieldColor, i);
-                EditorFunctions.DrawSoundPropertyAt(propsounds, "previewColor", i, new GUILayoutOption[] {GUILayout.Width(50)});
+                EditorFunctions.DrawSoundPropertyAt(propsounds, "soundPreviewer", "Sound Previewer", Styles.fieldColor,
+                    i);
+                EditorFunctions.DrawSoundPropertyAt(propsounds, "previewColor", i,
+                    new GUILayoutOption[] {GUILayout.Width(50)});
                 EditorFunctions.DrawSoundPropertyAt(propsounds, "soundVisibleInScene", i,
                     new GUILayoutOption[] {GUILayout.Width(15)});
             }
         }
     }
 
-    static void DrawMixersTab(List<AudioManager.Sound> sounds, int i, UnityEngine.Object _manager, SerializedProperty propMixers)
+    static void DrawMixersTab(List<AudioManager.Sound> sounds, int i, UnityEngine.Object _manager,
+        SerializedProperty propMixers)
     {
         using (new EditorGUILayout.HorizontalScope())
         {
@@ -235,7 +287,7 @@ public class AudioManagerEditor : Editor
         // base.DrawDefaultInspector();
         // return;
 
-        if (soundStartedPreviewing) Repaint();
+        if (currentPreviewer != null) Repaint();
 
         using (new EditorGUILayout.HorizontalScope("HelpBox"))
         {
@@ -249,151 +301,209 @@ public class AudioManagerEditor : Editor
                 ToggleAllButtons();
             }
         }
+        var p = (from s in sounds select s.pitch).ToArray();
+        var v = (from s in sounds select s.volume).ToArray();
 
-        for (int i = 0; i < propsounds.arraySize; i++)
+        DrawSound(sounds, propsounds, false, manager, serializedObject, propMixers);
+        
+        if(currentPreviewer != null)
         {
-            DrawSound(sounds, propsounds, i, false, manager, serializedObject, propMixers);
+            for (var i = 0; i < p.Length; i++)
+            {
+                if (p[i] != sounds[i].pitch || v[i] != sounds[i].volume)
+                {
+                    currentPreviewer.Sound = sounds[i];
+                }
+            }
         }
     }
 
-    public static void DrawSound(List<AudioManager.Sound> sounds, SerializedProperty _propSounds, int i,
+    public static void DrawSound(List<AudioManager.Sound> sounds, SerializedProperty _propSounds, 
         bool onlyDrawParameters, Object _manager, SerializedObject _serializedObject, SerializedProperty propMixers)
     {
-        using (new EditorGUILayout.VerticalScope("HelpBox"))
+        for (int i = 0; i < _propSounds.arraySize; i++)
         {
-            using (new EditorGUILayout.HorizontalScope())
+
+            using (new EditorGUILayout.VerticalScope("HelpBox"))
             {
-                bool prevVisibilityState = sounds[i].soundVisibleInInspector;
-
-                if (!sounds[i].clip)
-                    if (GUILayout.Button(
-                        AssetDatabase.LoadAssetAtPath("Assets/Simple Audio Manager/Textures/warning icon.png",
-                            typeof(Texture2D)) as Texture2D, GUILayout.MaxWidth(20), GUILayout.MaxHeight(20)))
-                    {
-                        AudioClip[] clips = Resources.FindObjectsOfTypeAll<AudioClip>();
-                        sounds[i].clip = clips.Length > 0 ? clips[0] : null;
-                    }
-
-                sounds[i].soundVisibleInInspector = GUILayout.Toggle(sounds[i].soundVisibleInInspector,
-                    sounds[i].soundName, Styles.hoverableButton);
-
-                if (prevVisibilityState != sounds[i].soundVisibleInInspector)
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorUtility.SetDirty(_manager);
-                }
+                    bool prevVisibilityState = sounds[i].soundVisibleInInspector;
 
-
-                using (new EditorGUI.DisabledGroupScope(i == 0))
-                    if (GUILayout.Button("↑", Styles.moveButtonStyle, GUILayout.MaxWidth(30)))
-                    {
-                        MoveSoundUp(sounds, i);
-                    }
-
-                using (new EditorGUI.DisabledGroupScope(i == sounds.Count - 1))
-                    if (GUILayout.Button("↓", Styles.moveButtonStyle, GUILayout.MaxWidth(30)))
-                    {
-                        MoveSoundDown(sounds, i);
-                    }
-
-
-                if (GUILayout.Button("-", Styles.removeButtonStyle, GUILayout.MaxWidth(30)))
-                {
-                    RemoveSoundAt(sounds, i, _propSounds, _serializedObject);
-                    return;
-                }
-            }
-
-
-
-            if (sounds[i].soundVisibleInInspector)
-            {
-                using (new EditorGUILayout.HorizontalScope("HelpBox"))
-                {
-                    AudioClip prevClip = sounds[i].clip;
-                    EditorFunctions.DrawSoundPropertyAt(_propSounds, "clip", i);
-
-
-                    if (sounds[i].clip != prevClip && sounds[i].clip)
-                    {
-                        sounds[i].soundName = sounds[i].clip.name;
-                    }
-
-                    using (new EditorGUI.DisabledGroupScope(!sounds[i].clip))
-                    {
-                        EditorFunctions.DrawSoundPropertyAt(_propSounds, "soundName", i);
-
-                        if (!sounds[i].soundTesting)
+                    if (!sounds[i].clip)
+                        if (GUILayout.Button(
+                            AssetDatabase.LoadAssetAtPath("Assets/Simple Audio Manager/Textures/warning icon.png",
+                                typeof(Texture2D)) as Texture2D, GUILayout.MaxWidth(20), GUILayout.MaxHeight(20)))
                         {
-                            sounds[i].soundTesting = GUILayout.Toggle(sounds[i].soundTesting, "Preview",
-                                Styles.buttonNameToggle);
+                            AudioClip[] clips = Resources.FindObjectsOfTypeAll<AudioClip>();
+                            sounds[i].clip = clips.Length > 0 ? clips[0] : null;
                         }
-                        else
+
+                    sounds[i].soundVisibleInInspector = GUILayout.Toggle(sounds[i].soundVisibleInInspector,
+                        sounds[i].soundName, Styles.hoverableButton);
+
+                    if (prevVisibilityState != sounds[i].soundVisibleInInspector)
+                    {
+                        EditorUtility.SetDirty(_manager);
+                    }
+
+
+                    using (new EditorGUI.DisabledGroupScope(i == 0))
+                        if (GUILayout.Button("↑", Styles.moveButtonStyle, GUILayout.MaxWidth(30)))
                         {
-                            if (sounds[i].Previewer != null && sounds[i].Previewer.isPlaying)
+                            MoveSoundUp(sounds, i);
+                        }
+
+                    using (new EditorGUI.DisabledGroupScope(i == sounds.Count - 1))
+                        if (GUILayout.Button("↓", Styles.moveButtonStyle, GUILayout.MaxWidth(30)))
+                        {
+                            MoveSoundDown(sounds, i);
+                        }
+
+
+                    if (GUILayout.Button("-", Styles.removeButtonStyle, GUILayout.MaxWidth(30)))
+                    {
+                        RemoveSoundAt(sounds, i, _propSounds, _serializedObject);
+                        DestroySound(currentPreviewer);
+                        return;
+                    }
+                }
+
+
+                if (sounds[i].soundVisibleInInspector)
+                {
+                    using (new EditorGUILayout.HorizontalScope("HelpBox"))
+                    {
+                        AudioClip prevClip = sounds[i].clip;
+                        EditorFunctions.DrawSoundPropertyAt(_propSounds, "clip", i);
+
+
+                        if (sounds[i].clip != prevClip && sounds[i].clip)
+                        {
+                            sounds[i].soundName = sounds[i].clip.name;
+                        }
+
+                        using (new EditorGUI.DisabledGroupScope(!sounds[i].clip))
+                        {
+                            EditorFunctions.DrawSoundPropertyAt(_propSounds, "soundName", i);
+
+                            if (currentPreviewer == null)
                             {
-                                if (GUILayout.Button("❚❚", EditorStyles.miniButton, GUILayout.MaxWidth(50)))
+                                if (GUILayout.Button("Preview", Styles.buttonNameToggle))
                                 {
-                                    sounds[i].Previewer.Pause();
-                                    sounds[i].paused = true;
+                                    currentPreviewer = PreviewSound(sounds[i]);
                                 }
                             }
 
-                            if (sounds[i].Previewer != null && !sounds[i].Previewer.isPlaying)
+                            else if (currentPreviewer.previewer && currentPreviewer.Sound == sounds[i])
                             {
-                                if (GUILayout.Button("►", EditorStyles.miniButton, GUILayout.MaxWidth(50)))
+                                if (!currentPreviewer.previewer.isPlaying && sounds[i].paused)
                                 {
-                                    sounds[i].Previewer.UnPause();
+                                    if (GUILayout.Button("►", Styles.buttonNameToggle, GUILayout.MaxWidth(50)))
+                                    {
+                                        sounds[i].Previewer.UnPause();
+                                        sounds[i].paused = false;
+                                    }
+                                }
+
+                                if (currentPreviewer.previewer.isPlaying)
+                                {
+                                    if (GUILayout.Button("❚❚", Styles.buttonNameToggle, GUILayout.MaxWidth(50)))
+                                    {
+                                        sounds[i].Previewer.Pause();
+                                        sounds[i].paused = true;
+                                    }
+                                }
+
+                                if (GUILayout.Button("■", Styles.buttonNameToggle, GUILayout.MaxWidth(50)))
+                                {
+                                    DestroySound(currentPreviewer);
                                     sounds[i].paused = false;
+                                    return;
+                                }
+
+                                if (!currentPreviewer.previewer.isPlaying && !sounds[i].paused)
+                                {
+                                    DestroySound(currentPreviewer);
+                                    sounds[i].paused = false;
+                                    return;
                                 }
                             }
 
-                            sounds[i].soundTesting = GUILayout.Toggle(sounds[i].soundTesting, "■",
-                                EditorStyles.miniButton, GUILayout.MaxWidth(50));
-                        }
 
-                        if (sounds[i].soundTesting)
-                        {
-                            PreviewSound(sounds[i]);
-
-                            if (!sounds[i].Previewer.isPlaying && !sounds[i].paused)
-                            {
-                                DestroySound(sounds[i].Previewer, i);
-                                sounds[i].soundTesting = false;
-                            }
-                        }
-                        else
-                        {
-                            if (sounds[i].Previewer != null)
-                            {
-                                DestroySound(sounds[i].Previewer, i);
-                            }
+                            // if (!sounds[i].soundTesting)
+                            // {
+                            //     sounds[i].soundTesting = GUILayout.Toggle(sounds[i].soundTesting, "Preview",
+                            //         Styles.buttonNameToggle);
+                            // }
+                            // else
+                            // {
+                            //     if (sounds[i].Previewer != null && sounds[i].Previewer.isPlaying)
+                            //     {
+                            //         if (GUILayout.Button("❚❚", EditorStyles.miniButton, GUILayout.MaxWidth(50)))
+                            //         {
+                            //             sounds[i].Previewer.Pause();
+                            //             sounds[i].paused = true;
+                            //         }
+                            //     }
+                            //
+                            //     if (sounds[i].Previewer != null && !sounds[i].Previewer.isPlaying)
+                            //     {
+                            //         if (GUILayout.Button("►", EditorStyles.miniButton, GUILayout.MaxWidth(50)))
+                            //         {
+                            //             sounds[i].Previewer.UnPause();
+                            //             sounds[i].paused = false;
+                            //         }
+                            //     }
+                            //
+                            //     sounds[i].soundTesting = GUILayout.Toggle(sounds[i].soundTesting, "■",
+                            //         EditorStyles.miniButton, GUILayout.MaxWidth(50));
+                            // }
+                            //
+                            // if (sounds[i].soundTesting)
+                            // {
+                            //     PreviewSound(sounds[i]);
+                            //
+                            //     if (!sounds[i].Previewer.isPlaying && !sounds[i].paused)
+                            //     {
+                            //         DestroySound(sounds[i].Previewer, i);
+                            //         sounds[i].soundTesting = false;
+                            //     }
+                            // }
+                            // else
+                            // {
+                            //     if (sounds[i].Previewer != null)
+                            //     {
+                            //         DestroySound(sounds[i].Previewer, i);
+                            //     }
+                            // }
                         }
                     }
-                }
 
-
-                if (sounds[i].clip)
-                {
-                    sounds[i].selectedTab = onlyDrawParameters
-                        ? GUILayout.Toolbar(sounds[i].selectedTab,
-                            new[] {"Parameters"}, Styles.mainToolbarButton)
-                        : GUILayout.Toolbar(sounds[i].selectedTab,
-                            new[] {"Parameters", "Spatial Blend", "Mixer", "Events"}, Styles.mainToolbarButton);
-
-                    switch (sounds[i].selectedTab)
+                    if (sounds[i].clip)
                     {
-                        case 0:
-                            DrawParameterTab(sounds[i], _propSounds, i, _manager);
-                            break;
-                        case 1:
-                            DrawSpatialBlendTab(sounds[i], _propSounds, i, _manager);
-                            break;
-                        case 2:
-                            DrawMixersTab(sounds, i, _manager, propMixers);
-                            break;
-                        case 3:
-                            DrawEventsTab(sounds[i], _propSounds, i);
-                            break;
+                        
+                        
+                        sounds[i].selectedTab =  
+                            GUILayout.Toolbar(sounds[i].selectedTab, onlyDrawParameters ? new[] {"Parameters"} : new [] { "Parameters", "Spatial Blend", "Mixer", "Events"}, Styles.mainToolbarButton);
+                      
+                        switch (sounds[i].selectedTab)
+                        {
+                            case 0:
+                                var p = sounds[i].pitch;
+                                DrawParameterTab(sounds[i], _propSounds, i, _manager);
+                                if(sounds[i].pitch != p) Debug.Log("si");
+                                break;
+                            case 1:
+                                DrawSpatialBlendTab(sounds[i], _propSounds, i, _manager);
+                                break;
+                            case 2:
+                                DrawMixersTab(sounds, i, _manager, propMixers);
+                                break;
+                            case 3:
+                                DrawEventsTab(sounds[i], _propSounds, i);
+                                break;
+                        }
                     }
                 }
             }
@@ -402,8 +512,6 @@ public class AudioManagerEditor : Editor
         _serializedObject.ApplyModifiedProperties();
         _serializedObject.Update();
     }
-
-
     private static void DrawDelegateFinder(AudioManager.Sound sound, SerializedProperty propSounds, int i)
     {
         using (new GUILayout.HorizontalScope())
@@ -588,11 +696,13 @@ public class AudioManagerEditor : Editor
         {
             if (sounds[i].soundVisibleInScene)
             {
-                Handles.color = new Color(sounds[i].previewColor.r, sounds[i].previewColor.g, sounds[i].previewColor.b,
+                Handles.color = new Color(sounds[i].previewColor.r, sounds[i].previewColor.g,
+                    sounds[i].previewColor.b,
                     1);
                 EditorGUI.BeginChangeCheck();
 
-                float s = Handles.ScaleValueHandle(sounds[i].settings.maxDistance, sounds[i].soundPreviewer.position,
+                float s = Handles.ScaleValueHandle(sounds[i].settings.maxDistance,
+                    sounds[i].soundPreviewer.position,
                     Quaternion.identity, sounds[i].settings.maxDistance * .5f, Handles.CubeHandleCap, .1f);
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -616,44 +726,25 @@ public class AudioManagerEditor : Editor
         serializedObject.Update();
     }
 
-    private static bool soundStartedPreviewing = false;
-
-    public static void PreviewSound(AudioManager.Sound sound)
+    public static Previewer PreviewSound(AudioManager.Sound sound)
     {
-        if (!soundStartedPreviewing)
+        // Debug.Log(soundStartedPreviewing);
+        // if (!soundStartedPreviewing)
         {
-            soundStartedPreviewing = true;
-            int spatialBlend = sound.spatialBlend ? 1 : 0;
+            // soundStartedPreviewing = true;
 
-            sound.Previewer.clip = sound.clip;
-            sound.Previewer.outputAudioMixerGroup = sound.mixer;
-            sound.Previewer.loop = sound.loop;
-            sound.Previewer.volume = sound.volumeIsRange
-                ? UnityEngine.Random.Range(sound.volumeRange.x, sound.volumeRange.y)
-                : sound.volume;
-            sound.Previewer.pitch = sound.pitchIsRange
-                ? UnityEngine.Random.Range(sound.pitchRange.x, sound.pitchRange.y)
-                : sound.pitch;
-            sound.Previewer.priority = sound.priorityIsRange
-                ? (int) UnityEngine.Random.Range(sound.priorityRange.x, sound.priorityRange.y)
-                : sound.priority;
-            sound.Previewer.minDistance = sound.settings.minDistance;
-            sound.Previewer.maxDistance = sound.settings.maxDistance;
-
-
-            sound.Previewer.Play();
-            sound.e?.Invoke();
+            var p = new Previewer(sound.Previewer, sound);
+            p.Play();
+            return p;
         }
-
-        // EditorCoroutineUtility.StartCoroutine(DestroyOnDelay(sound.clip.length, previewer, i), this);
     }
 
-    static void DestroySound(AudioSource source, int i)
+    static void DestroySound(Previewer source)
     {
         if (source != null)
         {
-            soundStartedPreviewing = false;
-            DestroyImmediate(source.gameObject);
+            DestroyImmediate(source.previewer.gameObject);
+            currentPreviewer = null;
         }
     }
 
